@@ -1,0 +1,323 @@
+---
+title: "dplyr verbs"
+output: html_notebook
+---
+
+*Objectives*
+- Understand what each 'dplyr' verb does
+- Be able to use 'dplyr' verbs
+- Be able to handle missing values and nulls while using functions
+- Be able to use additional functions that support the 'dplyr' verbs
+- Be familiar with the use of the 'magrittr' (pipe) operator
+
+Data wrangling is the process of taking a dataset and manipulate for use in analysis/statistical inference
+
+Dplyr is an R package, part of the tidyverse (groups lots of packages) - the verbs make it all a bit more human friendly: 
+summarise, filter, mutate, select
+
+Tibble: rows and columns like a spreadsheet
+
+Select selects columns of interest (e.g. 3 out of 5)
+Filter filters out rows (e.g. only people from town X)
+Arrange arranges the order of observations (e.g. alphabetical)
+Mutate creates a new variable/column
+Group by creates groups of observations (e.g. species)
+Summarise creates summary statistics 
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+```{r}
+tidyverse_logo()
+```
+
+
+Two ways to call functions from libraries:
+
+1. `library(package_name)` followed by `function_name()`
+2. `library_name::function_name()`
+
+
+```{r}
+students
+```
+
+```{r}
+all_deaths
+```
+Find number of rows in dataset
+```{r}
+nrow(all_deaths)
+```
+
+```{r}
+ncol(all_deaths)
+```
+
+```{r}
+dim(all_deaths)
+```
+
+```{r}
+names(all_deaths)
+```
+First 6 rows
+```{r}
+head(all_deaths)
+```
+
+First 10 rows
+```{r}
+head(all_deaths, 10)
+```
+
+Bottom of the data set
+```{r}
+tail(all_deaths, 2)
+```
+Glimpse gives us all column names, data types, rows, cols, sample of data
+```{r}
+glimpse(all_deaths)
+```
+View shows you a spreadsheet in a separate tab, not usually needed
+```{r}
+View(all_deaths)
+```
+Skim shows us overview of missing data and stats of numerical columns
+```{r}
+skimr::skim(all_deaths)
+```
+
+
+```{r}
+select(all_deaths, name, allegiances, gender, nobility, year_of_death)
+```
+
+Can remove columns if easier
+```{r}
+select(all_deaths, -name)
+```
+```{r}
+all_deaths_no_names <- select(all_deaths, -name)
+```
+Assigning means the result won't show up, unless you put it all in brackets
+
+```{r}
+names(all_deaths)
+select(all_deaths, book1_GoT, book2_CoK, book3_SoS, book4_FfC, book5_DwD)
+select(all_deaths, contains("book"))
+select(all_deaths, contains("death"))
+`select(all_deaths, 1,2,3,4,5)`
+```
+#Filter()
+
+For selecting *rows*
+
+`filter` will return all the rows that meet some specified condition
+
+##Logical Operators
+
+`>` greater than
+`<` less than
+`<=` less than or equal to
+`>=` greater than or equal to
+`==` check for equality
+`%in%` check for equality against *more than one* value
+`!=` check for inequality
+`!` negate a logical value
+
+```{r}
+filter(all_deaths, allegiances == "Lannister")
+```
+```{r}
+filter(all_deaths, allegiances != "Lannister")
+```
+using %in% allows us to check both lannister strings
+```{r}
+filter(all_deaths, allegiances %in% c("House Lanniser", "Lannister"))
+filter(all_deaths, 
+       allegiances == "Lannister",
+       allegiances == "House Lannister")
+```
+
+```{r}
+distinct_alleg <- distinct(all_deaths, allegiances)
+
+arrange(distinct_alleg, allegiances)
+```
+Filter characters between chapters 5 and 10
+```{r}
+filter(all_deaths, book_intro_chapter >= 5 & book_intro_chapter <= 10)
+```
+
+*Note* AND operations take precedence over OR
+
+
+1. Find where the year_of_death is less than or equal to 299.
+2. Find just the data for the characters “Jon Snow”, “Daenerys Targaryen” and “Samwell Tarly”.
+3. Find the females (gender is 0) who are not Lannisters and only return these characters names. 
+Hint You will need to combine both of the dplyr verbs we have learned.
+
+```{r}
+filter(all_deaths, year_of_death <= 299)
+filter(all_deaths, name %in% c("Jon Snow", "Daenerys Targaryen", "Samwell Tarly"))
+#select(all_deaths, name (filter(all_deaths, gender == 0, allegiances != "Lannister" !contains("Lannister")))
+
+```
+
+Missed some stuff
+```{r}
+all_deaths %>%
+  mutate(book_of_death = book_of_death * 5)
+```
+# Converstion functions in mutate()
+
+The conversation functions are
+* `as.integer()` # whole number
+* `as.double()` # has decimals
+* `as.numeric()` # convert to number
+* `as.character()` # string
+* `as.factor()` # convert to levels
+* `as.logical()` # TRUE or FALSE
+
+```{r}
+all_deaths %>% 
+  mutate(book_of_death = as.character(book_of_death))
+```
+
+just cos a number is onscreen doesn't mean its a number that can be operated on
+
+Converting strings of letters to numbers  created NAs
+```{r}
+all_deaths %>% 
+  mutate(name = as.numeric(name))
+```
+
+# sum()
+```{r}
+sum(2,4)
+```
+
+```{r}
+all_deaths %>% 
+  mutate(year_of_death = sum(year_of_death, na.rm = TRUE))
+```
+
+# mean()
+
+Returns one value - the mean of the input values
+
+```{r}
+mean(c(10,20))
+```
+
+```{r}
+all_deaths %>% 
+  mutate(year_of_death = mean(year_of_death, na.rm = TRUE))
+```
+
+Add a new column which is a logical vector, which has TRUE if book_intro_chapter is empty, and FALSE if it isn’t. Hint: you’ll need to use the is.na function.
+Change the nobility column to a logical vector.
+Find the number of male characters by taking the sum of the gender column (as gender = 1 is male).
+
+```{r}
+all_deaths %>% 
+  mutate(new_col = is.na(book_intro_chapter))
+
+all_deaths %>% 
+  mutate(nobility = as.logical(nobility))
+
+sum(all_deaths$gender)
+
+all_deaths %>% 
+  mutate(count_males = sum(gender))
+```
+
+# summarise()
+
+Create summary statistics of your data
+- this way solves the above task without creating a column you don't need
+
+```{r}
+
+all_deaths %>% 
+  summarise(n_names = sum(gender))
+```
+
+More common to use group_by with summarise
+```{r}
+all_deaths %>% 
+  # group deaths by Allegiances
+  group_by(allegiances) %>% 
+  # now count the number of people in each group n() function
+  summarise(character_count = n())
+```
+
+n function counts number of observations!
+
+Below groups firstly by nobility, then by gender, counts within thins groups
+```{r}
+all_deaths %>% 
+  group_by(nobility, gender) %>% 
+  summarise(character_count = n())
+```
+
+Task 
+Now it’s your turn! Start with the all_deaths data.
+If a character doesn’t have a missing value for book_of_death, this means that they have died at some point. Use this to find the allegiances with the highest number of people dead.
+Hint You will need to:
+Filter the data so we just have characters who have died.
+Use group by and summarise to find the number of characters who belonged to each allegiance.
+Arrange so the highest values come first.
+Try to use a single pipe sequence for this solution.
+
+```{r}
+all_deaths %>% 
+  filter(!is.na(book_of_death)) %>% 
+  group_by(allegiances) %>% 
+  summarise(character_count = n()) %>% 
+  arrange(desc(character_count))
+```
+
+# pull()
+
+e.g. Calculate the average year of death and create a new column which states TRUE if the year of death for the character is above this average, and FALSE if the year of death is below this average.
+
+```{r}
+average_year_of_death <-  all_deaths %>% 
+  summarise(avg_value = mean(year_of_death, na.rm = TRUE))
+```
+
+Now we've calculated the average.. (as a tibble/dataframe)
+Below code fails if we don't use it as a single value - can check using class()
+
+```{r}
+all_deaths %>% 
+  mutate(death_later_than_avg = 
+           year_of_death > average_year_of_death)
+```
+Need to use pull to pull the value out
+```{r}
+average_year_of_death <-  all_deaths %>% 
+  summarise(avg_value = mean(year_of_death, na.rm = TRUE)) %>% 
+  pull()
+```
+
+now the output is a single value and we can mutate this new column
+```{r}
+all_deaths %>% 
+  mutate(death_later_than_avg = 
+           year_of_death > average_year_of_death)
+```
+
+If summarising several stats, can include e.g. mean, median within the summarise function
+
+```{r}
+state_income_data %>% 
+  filter(Index == 'A') %>%
+  mutate(income_change = Y2008 - Y2002) %>% 
+  summarise(mean = mean(income_change),
+            median = median(income_change))
+```
+

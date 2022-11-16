@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+video_games <- read_csv("data/steam-200k-sample.csv",
+         skip = 4,
+         col_types = cols('bought online' = col_logical()))
+```
+Can convert 'bought online' to logical
+
+```{r}
+video_games %>% 
+  names()
+```
+```{r}
+library(janitor)
+```
+```{r}
+video_games_janitor_clean <- video_games %>%
+  clean_names()
+# replaces spaces with underscores, makes lowercase
+video_games_janitor_clean %>% 
+  names()
+```
+
+Alternatively we could rename manually with rename()
+```{r}
+video_games_renamed <- video_games_janitor_clean %>% 
+  rename("game_title"= "game_name", "activity" = "what", "playing_hours" = "value")
+
+video_games_renamed %>% 
+  names()
+
+```
+
+
+
+
+
+

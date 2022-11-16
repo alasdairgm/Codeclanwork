@@ -1,0 +1,235 @@
+---
+title: "Recoding exercise"
+output: html_notebook
+---
+
+Outcomes
+- some additional functions:
+-- distinct()
+-- count()
+
+-- if_else()
+-- recode()
+-- case_when()
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+
+`distinct()` is a dplyr function that takes in a dataset and a list of columns, and returns the unique values in that column
+
+`count()` is another dplyr function that returns the number of occurrences of each distinct level in a column
+
+```{r}
+students_big %>% 
+  distinct(region)
+# shows us the distinct regions, no copies
+# how many times does e.g. USA occur? use count
+students_big %>% 
+  count(region)
+# 2 people
+
+# can do multiple columns
+students_big %>% 
+  count(region, gender, sort = TRUE) # sort true orders from most prevalent to least
+```
+
+Why would we need to recode?
+What is recoding?
+
+It's a large part of data cleaning - involves changing or recoding the values in columns
+
+e.g. Edinburgh vs Edinburgh, Scotland
+e.g. EH91AA vs EH9 1AA
+
+Reduce level of granularity
+e.g. Country: Scotland, England, France, Wales
+--> Country: UK, UK, France, UK
+
+Three methods for us:
+`if_else()`
+`recode()`
+`case_when()`
+Each performs recode in its own way
+
+## if_else()
+
+```{r}
+letters <-  c("a", "B", "c")
+
+if_else(letters == "B", "b", "e")
+# replace upper case B with lower case b, everything else with e. FUnction needs the 2nd argument (e) to work
+
+if_else(letters == "B", "b", NA_character_)
+# replaces with NA
+if_else(letters == "B", "b", letters)
+# if condition not met, just left alone
+
+```
+
+what if we want male or female in gender col
+i.e. replace M with Male, F with Female
+```{r}
+students_big %>% 
+  mutate(gender = if_else(gender == "M", "Male", "Female")) %>% 
+  count(gender)
+# count tells us that we've covered all options, there's nothing that falls outside of male and female
+```
+
+
+Task - 5 minutes
+
+1. Change the column handed to to "Right" and "Left" instead or "R" and "L".
+2. In favourite_physical_activity change "Football/Soccer" into "Football" and leave all other activities the same.
+
+```{r}
+students_big %>% 
+  mutate(handed = if_else(handed == "R", "Right", "Left")) %>% 
+  count(handed)
+# careful here as some students have B for both, so could do 2 if_elses for right and left, to make sure Bs are left alone, or 3 if_else's to cover all bases and call B both
+
+students_big %>% 
+  mutate(favourite_physical_activity = if_else(favourite_physical_activity == "Football/Soccer", "Football", favourite_physical_activity)) %>% 
+  distinct(favourite_physical_activity)
+
+```
+
+# `recode()`
+
+recode(column/vector, "old_value" = "new_value", "other_old_value" = "other_new_value", ..., .default = NULL # if it's not in your replacement pairs, can set a default replacement #, .missing = NULL)
+
+```{r}
+letters
+
+# recode letters so that they are all upper case
+recode(letters, "a" = "A", "c" = "C")
+
+# recode handed so that L -> left, R -> right, B -> both
+students_big %>% 
+  select(handed) %>% 
+  mutate(handed = recode(handed, "L" = "Left", "R" = "Right", "B" = "Both")) %>% 
+  count(handed)
+
+
+# recode the travel to school column such that
+
+# Car -> car
+# Bus -> bus
+# Walk -> walk
+# Anything else -> other
+
+students_big %>% 
+  mutate(travel_to_school = recode(travel_to_school,
+                                   "Car" = "car",
+                                   "Bus" = "bus",
+                                   "Walk" = "walk",
+                                   .default = "other")) %>% 
+  count(travel_to_school)
+
+# if we haven't explicitly stated it, then make it 'other'
+```
+```{r}
+data <- read.table(header = TRUE, text="
+ subject sex control cond1 cond2 compl
+       1   M     7.9  12.3  10.7  T
+       2   F     6.3  10.6  11.1  T
+       3   F     9.5  13.1  13.8  N
+       4   M    11.5  13.4  12.9  F
+")
+```
+
+Task - 7 minutes
+Using the data below, do the following:
+1. Recode the sex column to be “Male” and “Female”
+2. Recode the compl column to be T = “True”, F = “False”, and NA otherwise
+
+```{r}
+data %>% 
+  mutate(sex = recode(sex,"M" = "Male",
+                      "F" = "Female")) %>% 
+  mutate(compl = recode(compl, "T" = "True",
+                         "F" = "False",
+                         .default = NA_character_))
+
+# can also do both mutates in one
+data %>% 
+  mutate(sex = recode(sex,"M" = "Male",
+                      "F" = "Female"),
+         compl = recode(compl, "T" = "True",
+                         "F" = "False",
+                         .default = NA_character_))
+# have to use NA_character_ as NA is logical type
+```
+
+
+# `case_when()`
+
+The most adaptable of the 3 but more complex
+
+A bit like multiple if_else()s
+if a condition -> do this
+if a different condition -> do this
+if a different condition -> do this
+if a different condition -> do this
+etc
+
+case_when(
+LHS conditional test ~ value when test is met
+)
+
+use tilda ~ to separate idea of LHS and RHS
+
+with case_when, the order we define our conditional expressions matters. If a condition is met (evaluate to TRUE), case_when doesn't check the later expressions
+
+```{r}
+letters
+
+# using case_when, change all of the letters to upper case
+case_when(
+  letters == "a" ~ "A",
+  letters == "b" ~ "B",
+  letters == "c" ~ "C",
+  TRUE ~ letters
+  )
+
+# in case_when case, we only need to specify what to do if condition is met, if not, move onto the next case
+# the last line prevents everything being turned to NA if it doesn't match any of the conditions e.g. B as this is already capitalised
+
+
+# classify students' education level such that...
+# students older than 16 are in "sixth form"
+# students older than 12 and younger than 16 are in "high school"
+# students 12 or younger are in "primary school"
+
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(education_level = case_when(
+    ageyears > 16 ~ "sixth form", # first test
+    ageyears > 12 ~ "high school", # if first test failed, try this
+    ageyears <= 12 ~ "primary school", # if second test failed, try this
+    TRUE ~ nursery # default value, i.e. if all else fails, nursery
+  ))
+
+# don't have to worry about more than and less than, as anyone over 16 is going to be dealt with first, so they wont get classed as high school by accident
+```
+
+
+Task - 5 minutes
+Using case_when, make a new column estimated_travel_time which is:
+Equal to 60 when your region is London.
+If you aren’t from London, then:
+10 when your travel_to_school is “Walk”.
+20 when your travel_to_schoolis “Car”.
+For everyone one else then it should equal to 30.
+
+```{r}
+students_big %>% 
+  select(region, travel_to_school) %>% 
+  mutate(estimated_travel_time = case_when(
+    region == "London" ~ 60,
+    travel_to_school == "Walk" ~ 10, 
+     travel_to_school == "Car" ~ 20,
+    TRUE ~ 30)) 
+```
+

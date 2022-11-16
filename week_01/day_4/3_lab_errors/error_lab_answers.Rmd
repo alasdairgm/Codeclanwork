@@ -1,0 +1,282 @@
+---
+title: "Solving Errors Lab - Answers"
+output:
+  html_document:
+    css: ../../../styles.css
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = T, message = F)
+```
+
+In this lab you will be presented with several code chunks that produce errors. Your task is to try and solve the errors and get the code chunk not only running without an error, but doing what it should be doing. For each chunk you will get a short description of what it is meant to be doing. 
+
+Remember to create a new notebook and copy over the contents of the .Rmd file and solve them in there, rather than changing the classnotes! You'll see the error messages when you try to run the chunks in your notebook - keep fixing them until you don't get an error (and it's accomplishing the goal).
+
+Use what you have learned in the errors lesson to solve these errors. Remember: problem solving and trying to interpret the error messages should be your first approach. Where this does not cut it there are several options: Google, StackOverflow, rubber ducking, specific function help files, checking data types and dimensions.
+
+**Note:** You may have to fix more than one thing per code chunk to escape the errors!
+
+# MVP
+<br>
+**Error 1.**  
+
+Create `some_letters` which is a character vector containing the following letters: "E", "R", "R", "O" and "R".
+```{r}
+some_letters <- ("E", "R", "R", "O", "R)
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# add c to concatenate
+# closed string around last "R"
+some_letters <- c("E", "R", "R", "O", "R")
+```
+</details>
+<br> 
+
+**Error 2.**  
+
+Create `message` which is a vector containing the following strings: "does", "this", "work" and "?", then convert the vector to uppercase using `toupper`.
+```{r}
+message <- c("does", "this" "work", "?")
+
+toupper(messege)
+
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# added comma between "this" and "work"
+# message not messege
+message <- c("does", "this", "work", "?")
+
+toupper(message)
+
+```
+</details>
+<br> 
+
+
+**Error 3.**  
+
+Select columns `mpg`, `cyl`, and `disp` from `mtcars` and keep only rows where `mpg` is less than 20..
+```{r}
+mtcars %>% 
+  select(mpg, cyl, disp) %>>%
+  filter(mpg < 20)
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r, warning = F}
+# load tidyverse (will need to have done this for most subsequent tasks)
+# fix pipe from %>>% to %>%
+library(tidyverse)
+
+mtcars %>% 
+  select(mpg, cyl, disp) %>%
+  filter(mpg < 20)
+
+```
+</details>
+<br> 
+
+
+**Error 4.**
+*Select columns `Sepal.Length`, `Sepal.Width`, and `Species` and arrange by `Sepal Length`.*
+```{r}
+iris %>% 
+  select(Sepal.Width, Species) %>% 
+  arrange(Sepal.Length)
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# include 'Sepal.Length' in select() arguments
+
+iris %>% 
+  select(Sepal.Length, Sepal.Width, Species) %>% 
+  arrange(Sepal.Length)
+
+```
+</details>
+<br> 
+
+
+**Error 5.** 
+
+Find the average tooth length for where the supplement is vitamin C.
+
+```{r}
+ToothGrowth %>%
+  summarise(avg_len_vc = mean(len)) %>% 
+  filter(supp == "VC")
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# move filter() to before summarise()
+ToothGrowth %>% 
+  filter(supp == "VC") %>%
+  summarise(avg_len_vc = mean(len)) 
+
+
+```
+</details>
+<br> 
+
+**Error 6.**
+Create a vector of animals (cat, dog, rabbit, horse), then use the `sample` function to get 10 random animals from those categories.
+
+```{r}
+animals <- c("cat", dog, "rabbit", "horse")
+
+sample(animals, 10)
+
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# first, dog needs to be in quotes
+# second, need to add argument 'replace = TRUE' to sample()
+
+animals <- c("cat", "dog", "rabbit", "horse")
+
+sample(animals, 10, replace = TRUE)
+
+```
+</details>
+<br> 
+
+**Error 7.**  
+Create dog_names and cat_names, then use `intersect` to check which common pet names are shared by both dogs and cats.
+
+```{r}
+dog_names <- c("Lucy", "Molly", "Charlie", "Luna", "Bella", "Cooper")
+
+cat_names < c("Luna", "Lily", "Lucy", "Charlie", "Max", "Oliver")
+
+Intersect(dog_names)
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# forgot - in <-
+# intersect not Intersect
+# add cat_names as an argument to intersect()
+dog_names <- c("Lucy", "Molly", "Charlie", "Luna", "Bella", "Cooper")
+
+cat_names <- c("Luna", "Lily", "Lucy", "Charlie", "Max", "Oliver")
+
+intersect(dog_names, cat_names)
+```
+</details>
+<br> 
+
+**Error 8.**
+Filter weights equal to or below 150 grams, then create a new column 'weight_kg' that contains the weight in kilograms.
+
+```{r}
+chickwts %>% 
+  filter(weight =< 150) %>% 
+  mutate(weight_kg == weight * 0.001)
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# <= not =<
+# = not ==
+chickwts %>% 
+  filter(weight <= 150) %>% 
+  mutate(weight_kg = weight * 0.001)
+```
+</details>
+<br> 
+
+**Error 9.**
+Create a tibble with column `alphabet` which contains the English alphabet and column `numbers` which has a unique number for each letter. Then remove rows where the letter is A, B or C.
+
+```{r}
+tibble(alphabet = LETTERS(),
+       numbers = 1:25) %>% 
+  filter(letter != c(A, B, C))
+```
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+# a lot to fix here...
+# LETTERS is not a function so remove () after
+# the length of column 'numbers' is too short, so make it 1:26 or 0:25
+# add "A", "B" and "C" in double quotes
+# column is called 'alphabet', not 'letter'
+# cannot do '!=', need a 'not %in%' which can be be donw with %in% and '!'
+
+tibble(alphabet = LETTERS,
+       numbers = 1:26) %>% 
+  filter(!(alphabet %in% c("A", "B", "C")))
+
+```
+</details>
+<br>
+
+**Error 10.** 
+
+**The chunk below creates the data for this error (don't change anything in it):**
+```{r}
+# Don't change anything in this code chunk
+# but you will need to include it in your notebooks
+
+set.seed(999)
+
+scent_ratings <- tibble(
+  iD = rep(1:10, each = 5),
+  SCENT = rep(c("New book", "Cut grass", "Rose oil", "Fresh linen", "Wet dog"), 10),
+  rating = sample(c(0:5, NA), 50, replace = TRUE),
+  PersonAge = rep(NA, 50)
+)
+```
+
+Clean the variable names and drop missing ratings from `scent_ratings` and calculate an average rating per scent.
+
+```{r}
+scent_ratings %>% janitor:clean_names()
+
+scent_ratings %>% 
+  drop_na() %>% 
+  group_by(scent) %>% 
+  summarise(mean_rating = mean())
+```
+<details>
+<summary>**Answer**</summary>
+```{r}
+# janitor::clean_names() with two ::
+# need to clean_names in one pipe or save into variable so changes persist
+# drop_na() removes all data as age column is completely empty
+# so need to drop_na(rating) or 'unselect' person_age and then drop_na()
+# need to have a column name in mean()
+
+scent_ratings %>% 
+  janitor::clean_names() %>% 
+  drop_na(rating) %>% 
+  group_by(scent) %>% 
+  summarise(mean_rating = mean(rating))
+  
+```
+</details>
+<br> 
+
+

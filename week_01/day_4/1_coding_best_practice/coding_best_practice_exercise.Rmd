@@ -1,0 +1,125 @@
+---
+title: "coding best practice"
+output: html_notebook
+---
+
+Code style is about much more than looking good
+Most important person to think about is future you - will you be understand your code?
+
+We adopt the tidyverse style guide. We've summarised the important parts of the style guide that apply to you just now.
+
+- lower-case letters, numbers, and underscores - `snake_case`
+others include PascalCase, camelCase, skewer-case, SCREAMING_SNAKE_CASE, nocase
+
+- avoid df, data, test etc. as they are non descriptive
+
+- objects should be nouns and functions should be verbs
+Think of it like "this function will... `convert_miles_to_km`
+
+- try not to overwrite functions and objects already in R
+leads to conflicts
+
+e.g.'s
+1. BabyWeightData - bad only cos of Pascal, but otherwise good
+2. data - too vague
+3. baby_weight_data - v good
+4. babies - too vague but still good
+5. weighting_babies - naming an object with a verb
+
+# Internal structure
+ - always start with your library calls and then reading in data
+ - use empty space to split code into sections
+ - use commented lines of _ to show larger sections
+ 
+ e.g. 
+ library(x)
+ library(y)
+ 
+ # doing thing one -----------------------
+ 
+ code
+ 
+ # doing thing two -----------------------
+ 
+# Spacing and assignment 
+ 
+ - put a space after a comma
+ - do not put spaces directly inside or outside parentheses
+ - use <- for assignment, and put spaces either side
+ - also use spaces on either side of = and ==
+ - extra space are okay if they help align <- or =
+ - there is also an R Studio shortcut Ctrl +i to help with alignment
+ 
+='s are everywhere! <- lets us know exactly when assignments are happening 
+
+# Line length
+
+- Code shouldn't be more than 80 characters
+- Can add margin to prevent going over 80
+- Can split function across multiple lines e.g. 
+tibble(
+  x = x,
+  y = y,
+)
+- Multiple line function calls should have the function name and opening bracket on one line, arguments on next lines one tab length in, and finish with the closing bracket on a single line (RStudio does a lot of this for you)
+- If writing in a notebook your code will wrap at the end of the line, but it's best to avoid this happening by keeping lines short
+- Break code up using pipes, this can stop lines from getting too long
+
+ 
+ e.g. big_function(
+  something = "that",
+  requires = many,
+  arguments = "some of which may be long"
+)
+
+# Quotes
+
+- use double rather than single quotes
+
+```{r}
+"string"
+```
+```{r}
+'string'
+# R puts it back in doubles, R has a preference for that
+'dont\'t use single quotes for strings'
+```
+
+# Comments
+
+Handy for explaining processes.
+
+RNotebook is good for writing text outside of code chunks
+
+```{r}
+# can use hash inside code chunk
+then_we_can_write_our_code <- 1
+
+```
+
+Ideally want code to be understandable, code is there to explain the human reasoning, results of analysis etc
+
+Don't explain every step, or comment when a section of notebook would be better
+
+# What should make it into the final code?
+
+Want the minimum amount of code that gets where you want to go. Don't need to show code of understanding data.
+
+Remember that your initial code may get cleaned up at the end and all the extra gubbins removed.
+
+Styler add in can easily tidy up code for tidyverse style
+
+
+# Other best practices
+
+- be reproducible - which is one of the main advantages of a scripting language as you can see exactly how the analysis was performed - unlike excel
+- short is better than long
+- fast code is better than slow, but not really a problem unless silly amounts of code, don't worry
+- avoid premature optimisation, profiling code is when you see how long each bit takes and trying to speed it up - but don't worry too much
+- don't be afraid to rewrite to make code clearer or faster
+- but clarity is better than conciseness
+
+
+
+
+ 

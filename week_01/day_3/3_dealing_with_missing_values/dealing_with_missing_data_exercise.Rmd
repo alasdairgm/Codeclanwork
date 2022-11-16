@@ -1,0 +1,113 @@
+---
+title: "Dealing with missing values"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+comms_data <- read_csv("data/telecom_data.csv")
+comms_data
+```
+
+```{r}
+comms_data %>% 
+  filter(is.na(monthly_charges))
+```
+
+```{r}
+comms_data %>% 
+  summarise(count = sum(is.na(monthly_charges)))
+```
+# Remove them
+
+```{r}
+comms_data %>% 
+  drop_na() # can specify a particular column if required, otherwise drops all NAs
+```
+# Impute them
+
+```{r}
+comms_data_imputed_median <- comms_data %>% 
+  mutate(monthly_charges = coalesce(monthly_charges, median(monthly_charges), na.rm = TRUE))
+comms_data_imputed_median
+# coalesce looks for missing values and replaces with what you tell it to
+```
+
+```{r}
+comms_data_imputed_mean <- comms_data %>% 
+  mutate(monthly_charges = coalesce(monthly_charges, mean(monthly_charges), na.rm = TRUE))
+comms_data_imputed_mean
+# mean this time
+```
+
+
+```{r}
+ggplot(comms_data_imputed_median, aes(customerID, monthly_charges)) + geom_point()
+```
+
+```{r}
+ggplot(comms_data_imputed_mean, aes(customerID, monthly_charges)) + geom_point()
+```
+```{r}
+comms_data_imputed_median %>% 
+  filter(is.na(total_charges))
+```
+
+```{r}
+total_charged_replaced <- comms_data_imputed_median %>% 
+  mutate(total_charges = na_if(total_charges, "na")) %>%
+  mutate(total_charges = na_if(total_charges, "N/A"))
+```
+
+Now we can count and see how many more NAs there are since we na_if'd
+```{r}
+total_charged_replaced %>% 
+  filter(is.na(total_charges))
+```
+
+```{r}
+charges_numeric <- comms_data_imputed_median %>% 
+  mutate(total_charges = as.numeric(total_charges))
+charges_numeric
+
+charges_numeric %>% 
+  summarise(count = sum(is.na(total_charges)))
+
+# this does the same thing as na_if up there, doesn't know what to do with missing data when converting to numeric so just turns out NA
+```
+
+
+
+```{r}
+charges_numeric <- charges_numeric %>% 
+  filter(!is.na(total_charges))
+charges_numeric
+# filter out the missing data, same as drop_na
+```
+
+Task - 5 minutes
+
+Take a look at the payment_method column and find the different type of missing value identifiers we have, and how many we have.
+
+Replace these with NA, and then check if you have the right amount
+
+```{r}
+charges_numeric %>% 
+  distinct(payment_method)
+
+charges_numeric %>% 
+  mutate(payment_method = na_if(payment_method, "--")) %>% 
+  summarise(count = sum(is.na(payment_method)))
+```
+Can turn NAs to 'unavailable'
+```{r}
+charges_numeric_clean <- charges_numeric %>% 
+  mutate(payment_method = na_if(payment_method, '--')) %>% 
+  mutate(payment_method = coalesce(payment_method, "unavailable"))
+charges_numeric_clean
+```
+

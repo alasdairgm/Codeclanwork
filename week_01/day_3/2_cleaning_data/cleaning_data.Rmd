@@ -1,0 +1,130 @@
+---
+title: "Cleaning Data 1"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Learning objectives
+
+1. Be introduced to the concept of *Data Cleaning*
+2. Know about some common issues that can exist in raw data
+3. Be able to deal with these common issues
+
+**Lesson Duration: 30 minutes**
+
+# Data Cleaning 
+
+It is said that the average data analyst spends about 80% of their time cleaning their data. That's a long time! And it highlights how important it is to understand data cleaning. Today's lessons will teach you how to do some important data cleaning in R. 
+
+```{r, echo=FALSE, out.width = '80%'}
+knitr::include_graphics("images/data_cleaning.png")
+```
+
+
+# Cleaning a simple dataset
+
+For this initial lesson, we will be working with a sample dataset from the Steam gaming platform. The dataset contains information on what games some Steam users bought and how many hours they spent playing them. 
+
+This dataset is a list of user behaviors, with columns:   
+
+*  `customer id`: player id
+*  `game name`: game name
+*  `what`: what activity were they playing
+*  `value`: hours of game play
+*  `bought online`: 1 if the user bought the game online, and a 0 if they didn't.
+
+\href{https://www.kaggle.com/tamber/steam-video-games/downloads/steam-video-games.zip/3)}{You can find the full dataset by clicking on this link}
+
+# Removing Metadata
+
+Metadata is data about data. Often this will be listed in an accompanying file. However, sometimes you'll find that there is metadata within the data file as well, and you don't want it to be there. In our example dataset, there are 4 rows at the top, which just describe what the data is, and when it was last modified. 
+
+```{r, echo=FALSE, out.width = '80%'}
+knitr::include_graphics("images/metadata.png")
+```
+
+*Open the CSV file in a text editor*
+
+You will need to add the `skip` option into your `read_csv` call, and this will allow you to remove the metadata at the top. If you try to load without skipping you may either face an error or it will load it in with the metadata as the column names (depending on whether you are on Windows or Mac). 
+
+```{r}
+library(tidyverse)
+
+# load in the video games data, and remove the metadata 
+video_games <- read_csv("data/steam-200k-sample.csv", skip = 4)
+```
+
+# Checking variable types
+
+If we look at our data dictionary, we see that the variable `bought online` should be a `logical`. As a reminder, a `logical` variable is one that contains: TRUE or FALSE. So we should change this as we load it in. We can do this by adding an argument into our `read_csv()` function call.    
+
+```{r}
+video_games <- read_csv(
+  "data/steam-200k-sample.csv",
+  skip = 4, 
+  col_types = cols('bought online' = col_logical())
+)
+
+video_games
+```
+
+Another option is to load it in and then change the variable type using `mutate`:
+
+```{r}
+read_csv("data/steam-200k-sample.csv", skip = 4) %>%
+  mutate(`bought online` = as.logical(`bought online`))
+```
+
+Notice here that because there is a space in the column name you need to use back ticks around the column name. We will be just getting on to dealing with this! 
+
+Ok great, we now know we've got the right data coming in....
+
+# Adding and fixing variable names
+
+In an ideal world, you'll receive data that is properly labelled. However in the real world, this isn't always the case. Let's look at what variable names we have in our dataset.   
+
+```{r}
+video_games %>%
+  names()
+```
+
+There are spaces within the column headers, which we don't want. Spaces make using the column names harder, also they don't follow our best practice guidelines for column names, which we will discuss tomorrow.
+
+We can fix these names up using the `clean_names()` function from the package `janitor`. This converts the variable names into usable names by replacing spaces with underscores and making them all lowercase. First, let's install and load the package.  
+
+```{r, warning = FALSE, message = FALSE}
+library(janitor)
+```
+
+Now, we can use it to clean up our names.  
+
+```{r}
+# now let's use the clean_names() function from janitor
+video_games_janitor_clean <- video_games %>%
+  clean_names()
+
+video_games_janitor_clean %>%
+  names()
+```
+
+What's the difference? 
+
+The other way we can rename is manually renaming the variables ourselves using the `rename()` function from `dplyr` (we can do this to get rid of the spaces but also to actually change some of the column names). Within `rename` we use `new_name` = `old_name` syntax. 
+
+```{r}
+video_games_renamed <- video_games_janitor_clean %>%
+  rename("game_title" = "game_name", "activity" = "what", "playing_hours" = "value")
+
+video_games_renamed %>%
+  names()
+```

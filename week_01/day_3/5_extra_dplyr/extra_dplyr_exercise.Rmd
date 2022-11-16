@@ -1,0 +1,126 @@
+---
+title: "extra dplyr"
+output: html_notebook
+---
+
+# Extra dplyr
+
+- using group by with mutate
+- using `across` to perform operations across multiple columns
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+
+The datasets we'll work with are: 
+`chinesemeal` and `alldeaths` data from CodeClanData
+
+```{r}
+head(chinesemeal)
+dim(chinesemeal)
+
+```
+
+How many CaloriesPerDay of each protein type was consumed
+
+Add a column to the data that shows 
+The total CaloriesPerDay consumed across all FoodTypes
+
+```{r}
+chinesemeal %>% 
+  group_by(Year) %>% 
+  summarise(total_calories = sum(CaloriesPerDay))
+
+# cuts down number of rows to just one per year
+
+chinesemeal %>% 
+  group_by(Year) %>% # for each year
+  mutate(total_calories = sum(CaloriesPerDay)) %>% # add a column showing total cals
+  ungroup() %>% # remove any persisting groups
+  mutate(proportion_total_cals = CaloriesPerDay / total_calories) %>% # calculate proportions
+  arrange(Year) # sort by increasing Year
+```
+
+ summarise peels away last layer of grouping, while mutate keeps that layer there - bear in mind
+
+## Window functions
+
+- `lag()` and `lead()`
+lag() accesses a value in a previous row - get differences over time easily
+
+For Food Type == Carbohudrates, add a column showing the difference in CaloriesPerDay compared to the previous year.
+
+```{r}
+chinesemeal %>% 
+  filter(FoodType == "Carbohydrates") %>% 
+  mutate(prev_cals = lag(CaloriesPerDay)) %>%  # finds previous value and puts it in
+  mutate(calorie_diff = CaloriesPerDay - prev_cals)
+
+```
+
+Called window functions as they're almost looking in a window from where they currently are
+
+lead() does same but value ahead.
+
+Handy functions but don't come up all too often.
+
+Can also add a number e.g. lag(x, 2) to jump ahead 2 spaces
+
+# Grouping on multiple columns
+
+Using the all deaths dataset, get me a count of how many people in each allegiance are of each gender
+
+Summarise, by default, removes the last layer of grouping. Can change by using .group = "keep" or "drop" at end of function
+
+```{r}
+all_deaths %>% 
+  count(allegiances, gender) # basically gonna replicate this with new functions
+
+all_deaths %>% 
+  group_by(allegiances, gender) %>% 
+  summarise(n_character = n())
+```
+
+
+## Applying operations across multiple columns
+
+1. Change the column types of the book columns to be logical, rather than double
+
+```{r}
+all_deaths %>% 
+  mutate(
+    book1_GoT = as.logical(book1_GoT),
+    book2_CoK = as.logical(book2_CoK),
+    book3_SoS = as.logical(book3_SoS)
+  ) # etc - i.e. the long and painful way
+
+all_deaths %>% 
+  mutate(
+    across(.cols = book1_GoT:book5_DwD, # .cols takes in the special words like startswith, endswith etc, also takes numerical index positions
+           .fns = as.logical)
+  ) # applies function to each of the columns specified - easy!
+
+# what about a summarise with an across?
+
+# get the mean value of each of the numerical columns
+# this won't run its just representing the manual method
+all_deaths %>% 
+  summarise(
+    column = mean(column)
+  )
+
+all_deaths %>% 
+  summarise(
+    across(
+      .cols = where(is.numeric), # where is another of those selection helpers
+      .fns = mean, # mean of each numeric col
+      na.rm = TRUE # can provide additional arguments to .fns to be applied, i.e. here remove NAs
+    )
+  )
+```
+
+In summary, rather than writing out lots of operations, we can use across to do them in one go.
+
+Need to provide columns, i.e. here the numeric ones, otherwise it'll do them all. Can explicitly name the argument .cols, or putting it in the correct position of the function is sufficient
+

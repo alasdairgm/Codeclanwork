@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+some_letters <- c("E", "R", "R", "O", "R")
+```
+
+```{r}
+message <- c("does", "this", "work", "?")
+
+toupper(message)
+```
+
+
+```{r}
+library(tidyverse)
+mtcars %>% 
+  select(mpg, cyl, disp) %>%
+  filter(mpg < 20)
+```
+
+```{r}
+iris %>% 
+  select(Sepal.Length, Sepal.Width, Species) %>% 
+  arrange(Sepal.Length)
+```
+
+```{r}
+ToothGrowth %>%
+  filter(supp == "VC") %>% 
+  summarise(avg_len_vc = mean(len)) 
+
+```
+
+```{r}
+animals <- c("cat", "dog", "rabbit", "horse")
+sample(animals, 10, replace = TRUE) # need replace as true so that items can be resampled
+
+```
+
+```{r}
+dog_names <- c("Lucy", "Molly", "Charlie", "Luna", "Bella", "Cooper")
+
+cat_names <- c("Luna", "Lily", "Lucy", "Charlie", "Max", "Oliver")
+
+intersect(dog_names, cat_names)
+
+```
+
+```{r}
+chickwts %>% 
+  filter(weight <= 150) %>% 
+  mutate(weight_kg = weight * 0.001)
+```
+
+```{r}
+tibble(alphabet = LETTERS,
+       numbers = 1:26) %>% 
+  filter(alphabet != c("A", "B", "C"))
+
+# should be 
+tibble(alphabet = LETTERS,
+       numbers = 1:26) %>% 
+  filter(!alphabet %in% c("A", "B", "C"))
+# the above version only works because ABC occur in the alphabet,
+# other combos of letters wouldn't work
+```
+
+```{r}
+set.seed(999)
+
+scent_ratings <- tibble(
+  iD = rep(1:10, each = 5),
+  SCENT = rep(c("New book", "Cut grass", "Rose oil", "Fresh linen", "Wet dog"), 10),
+  rating = sample(c(0:5, NA), 50, replace = TRUE),
+  PersonAge = rep(NA, 50)
+)
+```
+
+```{r}
+library(janitor)
+scent_ratings %>% janitor::clean_names()
+
+```
+```{r}
+scent_ratings %>% 
+  rename(scent = SCENT) %>% # only doing this because we didn't assign the clean_names results
+  select(-PersonAge) %>% # or just drop_na(rating)
+  drop_na() %>% 
+  group_by(scent) %>% 
+  summarise(mean_rating = mean(rating))
+```
+
+
+
+
+
+
+

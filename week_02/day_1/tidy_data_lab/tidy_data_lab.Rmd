@@ -1,0 +1,36 @@
+---
+title: "tidy lab"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+country_data <- read_csv("data/country_data.csv")
+country_data
+```
+
+1. Need to turn separate year cols into 1 (i.e. pivot longer)
+2. Split country number and name
+3. Population and cases can be their own cols
+
+```{r}
+country_data_tidy <- country_data %>% 
+  pivot_longer(cols = starts_with("Y"),
+               names_to = "year",
+               values_to = "visitors") %>% 
+  pivot_wider(names_from = type,
+              values_from = visitors) %>% 
+  separate(country, c("code", "name"), sep = "\\.") %>% 
+  select(-code) %>% 
+  unite(code_both, c(code_numb, code_letter), sep="")
+
+country_data_tidy
+```
+
+
+
+
+

@@ -1,0 +1,314 @@
+---
+title: "Recoding"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Learning objectives
+
+1. Understanding what recoding is.
+2. Know how to use the functions `if_else`, `recode` and `case_when`.
+3. Understand when to use each function.
+
+**Lesson Duration: 1 hour**
+
+In this lesson we will be learning about three functions that help you change observations within a single categorical variable. Changing categorical variables is an essential part of cleaning data. In fact, it's so important it gets a special name: "recoding", and it gets it's own lesson!
+
+Start by loading `tidyverse`, and in this lesson we'll use data from `CodeClanData`.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(CodeClanData)
+```
+
+# The `if_else()` function
+
+The function `if_else` lets us do a logical test (just like in `filter`) and then change data depending on the result of that test.
+
+First, lets look at the column `ageyears` from `students_big`.
+
+```{r}
+students_big %>% 
+  select(ageyears)
+```
+
+Let's say we were interested in student ages and wanted to further categorise ages into two groups: those that are age 12 or younger, and those that are older than 12.
+
+We can turn the age column into into a `logical` vector by checking if each element is less than or equal to 12 using `mutate` and a logical operator.
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(
+    older_than_12 = ageyears > 12
+  )
+```
+
+All elements that are greater than 12 turn into `TRUE` and all elements to equal to or less  than 12 turn into `FALSE`.
+
+The `if_else()` function lets us transform this vector further in one step - we can pick any values we want to substitute with instead of just `TRUE` and `FALSE`. An example should make this clearer:
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(
+    older_than_12 = if_else(ageyears > 12, "Older than 12", "12 or younger")
+  )
+```
+
+The syntax is
+
+<center>
+`if_else(boolean expression, value if TRUE, value if FALSE)`
+
+</center>
+
+In many programming languages this is called a **'ternary statement'**, or **'ternary operation'**, because it is composed of **three parts**, as you can see. 
+
+Here are a few more examples.
+
+```{r}
+students_big %>% 
+  select(gender)
+
+students_big  %>% 
+  select(gender) %>% 
+  mutate(
+    gender = if_else(gender == "M", "Male", "Female")
+  )
+```
+
+<blockquote class = 'task'>
+**Task - 5 minutes**
+
+1. Change the column `handed` to to "Right" and "Left" instead or "R" and "L".
+2. In `favourite_physical_activity` change "Football/Soccer" into "Football" and leave all other activities the same.
+
+<details>
+<summary> **Solution** </summary>
+
+```{r}
+students_big %>% 
+  mutate(
+    # 1
+    handed = if_else(handed == "R", "Right", "Left"),
+    # 2
+    favourite_physical_activity = if_else(favourite_physical_activity == "Football/Soccer", "Football", favourite_physical_activity)
+  )
+```
+
+</details>
+</blockquote>
+
+# The `recode()` function
+
+The `if_else` function is really useful if you have two values you want to replace. However, what about when you have more? The `recode()` function is another way of recoding values. This particular function allows you to replace values in a vector based on their name.
+
+Here is an example of `recode`. The first argument is the column we want to work with and then we have pairs of *old value = new value*.
+
+```{r}
+students_big %>% 
+  select(travel_to_school)
+
+students_big %>% 
+  select(travel_to_school) %>% 
+  mutate(
+    travel_to_school = recode(travel_to_school, "Bus" = "bus", "Car" = "car", "Walk" = "walk")
+  )
+```
+You might have noticed that we actually have lots of values for `travel_to_school`.
+
+```{r, message = F}
+students_big %>% 
+  group_by(travel_to_school) %>% 
+  summarise(
+    n = n()
+  )
+```
+
+If we do not specify a new value in `recode` then those levels are unchanged. Or we can set the `.default` argument replace everything that has not already been changed. There is also a `.missing` argument, where you can choose a specific value to replace missing values with.
+
+```{r}
+students_big %>% 
+  select(travel_to_school) %>% 
+  mutate(
+    travel_to_school = recode(travel_to_school, "Bus" = "bus", "Car" = "car", "Walk" = "walk", .default = "Other")
+  )
+```
+
+`recode()` also works on `numeric` and `logical` variables:
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(ageyears = recode(ageyears, "12" = 120, .default = 0))
+```
+Note that despite `ageyears` being a numeric column, the value we want to replace is in quotes. This is because `recode` requires the left side of the equal sign to be in quotation marks.
+
+<blockquote class = "task">
+
+**Task - 10 minutes**
+
+Using the data below, do the following:
+
+* Recode the `subject` numbers to be: 001, 002, 003 and 004
+* Recode the `sex` column to be "Male" and "Female"
+* Recode the `compl` column to be T = "True", F = "False", and NA otherwise
+
+
+```{r}
+data <- read.table(header = TRUE, text="
+ subject sex control cond1 cond2 compl
+       1   M     7.9  12.3  10.7  T
+       2   F     6.3  10.6  11.1  T
+       3   F     9.5  13.1  13.8  N
+       4   M    11.5  13.4  12.9  F
+")
+```
+
+<details>
+<summary>**Answers**</summary>
+```{r}
+data <- data %>% 
+  mutate(
+    subject = recode(subject, 
+                  "1" = "001",
+                  "2" = "002",
+                  "3" = "003",
+                  "4" = "004"
+                  ),
+    
+    sex = recode(sex, 
+                  "M" = "Male",
+                  "F" = "Female"
+                 ), 
+    
+    compl = recode(compl, 
+                  "T" = TRUE,
+                  "F" = FALSE,
+                  .default = NA
+                  )
+       )
+```
+
+</details>
+</blockquote>
+
+# The `case_when()` function
+
+When you want to do more complicated transformations of a vector, you can use the `case_when()` function. 
+
+Using `case_when()` you can write as many cases and outcomes as you like. They have to go on either side of a `~` (tilde). Each time the left hand side is `TRUE`, the vector will have the value on the right. Often we end `case_when()` statements with a `TRUE` on the left-hand-side, that mops up all cases left over.
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(
+    age_divisible = case_when(
+      ageyears %% 2 == 0 ~ "Even",
+      ageyears %% 3 == 0 ~ "Divisible by 3",
+      ageyears %% 5 == 0 ~ "Divisible by 5",
+      TRUE               ~ "Other number"
+    )
+  )
+```
+
+The order in which we do the statements matters. If a value is `TRUE` for two statements, then only the first one will apply.
+
+In the example below, values which are less than or equal to 5, are also less than or equal to 7. However, they are substituted with a value of A, since that comes first. Here we are just using a single vector, but the same thing works inside a data frame.
+
+
+```{r}
+x <- 1:10
+
+case_when(
+  x <= 5 ~ "A",
+  x <= 7 ~ "B",
+  TRUE   ~ "C"
+)
+```
+
+However, if we swap the order around in the `case_when()` statement, they now all get the value B.
+
+```{r}
+x <- 1:10
+
+case_when(
+  x <= 7 ~ "B",
+  x <= 5 ~ "A",
+  TRUE   ~ "C"
+)
+```
+
+All your substituted values (the values on the right hand side of the tilde `~`) have to be of the same type. The code below will not work, because some of the substituted values are `character` and some are `numeric`. 
+
+```{r, eval = FALSE}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(
+    ageyears = case_when(
+      ageyears %% 2 == 0 ~ 2,
+      ageyears %% 3 == 0 ~ 3,
+      ageyears %% 5 == 0 ~ 5,
+      TRUE               ~ "Other number"
+    )
+  )
+```
+
+Be particularly careful if you are returning your original value: if this isn't of the same type as your other substituted values, you'll need to convert it.  
+
+```{r}
+students_big %>% 
+  select(ageyears) %>% 
+  mutate(
+    ageyears = case_when(
+      ageyears %% 2 == 0 ~ "Even",
+      ageyears %% 3 == 0 ~ "Divisible by 3",
+      ageyears %% 5 == 0 ~ "Divisible by 5",
+      TRUE               ~ as.character(ageyears)
+    )
+  )
+```
+<blockquote class = 'task'>
+
+**Task - 5 minutes**
+
+Using `case_when`, make a new column `estimated_travel_time` which is:
+
+* Equal to 60 when your `region` is London. 
+* If you aren't from London, then:
+  * 10 when your `travel_to_school` is "Walk".
+  * 20 when your `travel_to_school`is "Car".
+* For everyone one else then it should equal to 30.
+
+<details>
+<summary>**Solution**</summary>
+
+```{r}
+students_big %>% 
+  mutate(
+    estimated_travel_time = case_when(
+      region == "London" ~ 60,
+      travel_to_school == "Walk" ~ 10,
+      travel_to_school == "Car" ~ 20,
+      TRUE ~ 30
+    )
+  ) %>% 
+  select(estimated_travel_time, region, travel_to_school)
+```
+
+</details>
+</blockquote>
+
+

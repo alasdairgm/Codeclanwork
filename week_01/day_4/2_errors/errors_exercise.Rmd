@@ -1,0 +1,55 @@
+---
+title: "errors"
+output: html_notebook
+---
+
+Here to learn some common sources of errors and techniques to solve these
+
+-Watch out for spelling errors
+tabs help you autofill to ensure you get it bang on
+can use base R rm() function to remove a variable if it's hanging around unwanted, but restart the R session will work too
+
+fcuk package is a fun one that anticipates typos and makes suggestions
+
+-Upstream change
+Made a change but didn't update rest of code to get onboard, can use RNotebook to run chunks above or below to deal with this
+
+-Conflict of functions
+Due to  different functions with the same name in different packages
+
+```{r}
+library(tidyverse)
+library(MASS)
+```
+Warning shows us that selected is masked from dplyr, mass::select will have dominance as MASS loaded last
+
+```{r}
+mrcars %>% 
+  select(mpg)
+# see? masked! can use R help to see what the mass::select does
+
+# can do this to specify
+mtcars %>% 
+  dplyr::select(mpg)
+```
+
+can use conflicts() to see conflicts
+
+```{r}
+variable <- c(1,2,3)
+```
+In the console, this input is still needing finished (see plus signs in console). It's open and will cause an error.
+
+
+`no package called x`
+Maybe you loaded the library in wrong, or typo in the package loading (e.g. tidyverse is a package of packages)
+
+
+# Other tips 
+- Build code up, line by line until you find the error
+- Read the error message, can point you in right direction
+- google the error message
+- Step away from your computer
+- Rubber duck debugging (talk it through!)
+- Get someone to look at your code
+- Warnings aren't errors, but useful still - e.g. comparing vector c(1,2,3,4,5,6,7,8,9,10) == c(2,3,4) 

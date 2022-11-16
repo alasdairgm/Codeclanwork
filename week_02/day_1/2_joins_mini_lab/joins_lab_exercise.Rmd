@@ -1,0 +1,101 @@
+---
+title: "Joins lab"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+actors <- read_csv("data/actors.csv")
+movies <- read_csv("data/movies.csv")
+roles <- read_csv("data/roles.csv")
+
+```
+
+```{r}
+movies %>% 
+  filter(name == "Little Mermaid, The")
+```
+
+id is 192017
+
+```{r}
+little_mermaid_roles <- roles %>% 
+  filter(movie_id == 192017)
+```
+
+```{r}
+little_mermaid_roles %>% 
+  left_join(actors, by = c("actor_id" = "id"))
+little_mermaid_roles
+```
+
+```{r}
+little_mermaid_roles %>% 
+  inner_join(actors, by = c("actor_id" = "id"))
+little_mermaid_roles
+```
+
+Data is the same, meaning there are no columns in the left table that have missing data when merged with the right using id.
+
+```{r}
+actors_more_than_once <- actors %>% 
+  filter(film_count > 1)
+actors_more_than_once
+
+actors_more_than_once <- actors_more_than_once %>% 
+  left_join(roles, by = c("id" = "actor_id"))
+
+actors_more_than_once
+```
+
+
+```{r}
+actors_more_than_once <- actors_more_than_once %>% 
+  left_join(movies, by = c("movie_id" = "id"))
+
+actors_more_than_once
+```
+For each actor, find the average rating of the films they appeared. Find the five actors with the highest average rank of films they appeared in.
+```{r}
+actors_more_than_once2 <- actors_more_than_once %>% 
+  group_by(first_name, last_name) %>% 
+  mutate(rank = as.numeric(rank)) %>% 
+  summarise(average_rank = mean(rank, na.rm = TRUE)) %>% 
+  select(first_name, last_name, average_rank) %>% 
+  ungroup %>% 
+  slice_max(average_rank, n = 5)
+
+
+actors_more_than_once2
+```
+
+Find the actor who has appeared in most films. List the films they appeared in, the year the film was released and their role in the film.
+
+```{r}
+actors %>% 
+  arrange(desc(film_count))
+```
+Kevin Bacon
+```{r}
+actors %>% 
+  filter(first_name == "Kevin")
+```
+His ID is 22591
+
+```{r}
+movies %>% 
+  left_join(roles, by = c("id" = "movie_id")) %>% 
+  filter(actor_id == 22591) %>% 
+  select(name, year, role)
+```
+
+
+
+
+
+
+
+
+
+

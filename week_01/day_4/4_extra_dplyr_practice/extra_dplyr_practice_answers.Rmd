@@ -1,0 +1,210 @@
+---
+title: "Extra `dplyr` Practice - Answers"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F)
+```
+
+# MVP
+
+<br>
+The dataset for this minilab is from [Kaggle](https://www.kaggle.com/zynicide/wine-reviews) and contains reviews of different wine varieties (location, winery, price).
+
+<br>
+
+**Question 1.**
+
+Load the tidyverse, read in the data and investigate it, e.g. what are the variable names, variable types, dimensions, how many missing values etc.
+
+<details>
+<summary>**Answer**</summary>
+```{r, warning = F, message = F}
+library(tidyverse)
+wine_reviews <- read_csv("data/wine_ratings.csv")
+
+dim(wine_reviews)
+
+names(wine_reviews)
+
+glimpse(wine_reviews)
+
+sum(is.na(wine_reviews))
+
+wine_reviews %>% 
+  summarise(across(.cols = everything(), .fns = ~ sum(is.na(.x))))
+
+#view(wine_reviews)
+```
+</details>
+
+<br>
+
+**Question 2.**
+
+Select columns `title`, `taster_name`, `points`, `price`, and `country`, then **drop all NAs**. Save into a variable called `wine_subset`. Use this variable for all subsequent tasks.
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+
+wine_subset <- wine_reviews %>% 
+  select(title, taster_name, points, price, country) %>% 
+  drop_na()
+
+```
+</details>
+
+<br>
+
+**Question 3.** 
+
+Find the 5 countries with the highest mean points.
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+wine_subset %>% 
+  select(points, country) %>%
+  group_by(country) %>% 
+  summarise(mean_points = mean(points)) %>% 
+  slice_max(mean_points, n = 5)
+
+```
+</details>
+
+<br>
+
+**Question 4.** 
+
+Find the 5 countries with the lowest mean prices.
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+wine_subset %>% 
+  select(price, country) %>%
+  group_by(country) %>% 
+  summarise(mean_price= mean(price)) %>% 
+  slice_min(mean_price, n = 5)
+```
+</details>
+
+<br>
+
+**Question 5**
+
+Does the result differ if you use the median instead of the mean for Questions 3 and 4?
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+top_median_points <- wine_subset %>% 
+  select(points, country) %>% 
+  group_by(country) %>% 
+  summarise(median_points = median(points)) %>% 
+  slice_max(median_points, n = 5)
+
+top_median_points
+
+lowest_median_price <- wine_subset %>% 
+  select(price, country) %>% 
+  group_by(country) %>% 
+  summarise(median_price = median(price)) %>% 
+  slice_min(median_price, n = 5)
+
+lowest_median_price
+```
+
+yes - the values and orders of countries are different. Also, when using the median there are more ties, so the code actually results in the top `r nrow(top_median_points)` points and bottom `r nrow(lowest_median_price)` prices unless you add the argument `with_ties = FALSE` to `slice_max` and `slice_min`.
+</details>
+
+<br>
+
+**Question 6**
+
+Find the names of all the tasters using `distinct`. Then take a random sample of 5 names using `sample_n`. Save these 5 names into a new variable called `taster_sample` which should be a **character vector** containing only the names. 
+
+<details>
+<summary>**Hint**</summary>: You can use the function `pull` to extract a single column as a vector.
+</details>
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+
+taster_sample <- wine_subset %>% 
+  distinct(taster_name) %>% 
+  sample_n(5) %>% 
+  pull()
+
+taster_sample
+```
+</details>
+
+<br>
+
+**Question 7**
+
+Do the same thing for `country`, i.e. create a **character vector** called `country_sample` using `distinct` and `pull`, but this time use `sample_frac` to pick 10 countries at random. 
+
+<details>
+<summary>**Hint**</summary>: What is the proportion of countries you want? $\frac{Part}{Whole}$
+</details>
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+
+country_sample <- wine_subset %>% 
+  distinct(country) %>% 
+  sample_frac(10/n()) %>% # can replace with 42 or with nrow(.)
+  pull()
+
+country_sample
+```
+</details>
+
+<br>
+
+**Question 8**
+
+Filter the rows of `wine_subset` so you are left only with data from the 5 tasters in your `taster_sample` and from the countries in your `country_sample`. Save this into a new variable called `wine_sample`.
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+wine_sample <- wine_subset %>% 
+  filter(taster_name %in% taster_sample,
+         country %in% country_sample)
+
+wine_sample
+```
+</details>
+
+<br>
+
+**Question 9**
+
+Using your `wine_sample`, create a new column `difference_from_avg` which contains the difference between each wine's rating (`points`) and the average rating for that taster, then use arrange to see the highest positive difference first in the column. [**Hint:** you will first have to calculate the average points for each taster]
+
+<details>
+<summary>**Answer**</summary>
+```{r}
+
+wine_sample %>% 
+  group_by(taster_name) %>% 
+  mutate(avg_rating = mean(points)) %>% 
+  mutate(difference_from_avg = points - avg_rating) %>% 
+  arrange(desc(difference_from_avg))
+
+```
+</details>

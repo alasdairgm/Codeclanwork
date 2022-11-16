@@ -1,0 +1,143 @@
+---
+title: "tidy data exercise"
+output: html_notebook
+---
+
+Taking raw data and altering it to make it as easy to analyse with R as possible
+
+# Objectives
+
+1. Understand the concept of tidy data
+2. Be able to describe why datasets are not tidy
+3. Understand why tidy data is important for analytics
+
+The three basic fundamentals for tidy data: 
+1. Each variable should have its own column
+2. Each observation should have its own row
+3. Each value should have its own cell
+
+Long format: every row represents an observation belonging to a particular category
+- can filter it, select from it, summarise from it
+nice and easy, R likes this
+
+Wide format: each observation is spread across multiple columns
+- less effective for R to analyse, easier for humans to read
+
+# Tidyr package
+
+Comes with tidyverse
+
+1. `pivot_longer()` for making data "longer" format
+2. `pivot_wider()` for making data "wider" format
+3. `separate()` for splitting column data
+4. `unite()` to join columns
+
+```{r}
+library(tidyverse)
+
+subject_hr <- tibble( name = c("SUBJ01","SUBJ02","SUBJ03"), 
+  hr_am = c(68,72,68), 
+  hr_pm = c(58,89,52))
+
+subject_hr
+```
+
+Should only have 1 column for heart rate, and then a time column to specify am and pm - would mean each subject gets 2 rows (i.e. rows contain unique observations. = tidy
+
+## Pivot longer
+
+```{r}
+subject_hr %>% 
+  pivot_longer(cols = c(hr_am, hr_pm),
+               names_to = "measurement_time",
+               values_to = "heartrate")
+```
+
+```{r}
+income <- tibble(religion = c("Agnostic","Atheist","Buddhist", "Catholic"), 
+  X10k = c(12,25,3,75), 
+  X10k_to_20k = c(34,14,6,60),
+  X20k_to_30k = c(45,22,10,110))
+
+income
+```
+
+Observations are merged onto one row, should be split across rows.
+
+```{r}
+tidy_income <- income %>% 
+  pivot_longer(cols = -religion, # picking all cols except religion
+               names_to = "income", # the 'name' column
+               values_to = "count") # the 'value' column
+
+tidy_income
+```
+Now each column represents a variable and each row represents an observation
+
+```{r}
+messy_orders <- tibble( name = c("Joe Bloggs","Jane Smith","Penny Jones"), 
+  order_info = c("XY7282/29-06-19","LO0182/15-03-19","AS6812/04-06-19"), 
+  order_amount = c(58.00,125.00,75.25))
+
+messy_orders
+```
+
+This one isn't tidy because 2 observations within order_info
+Don't need to pivot but do need to separate
+
+```{r}
+tidy_orders <- messy_orders %>% 
+  separate(order_info, c("order_number", "data"), # which col we're separating and what the names of the new cols are
+           sep = "/") # separate this on the slash
+tidy_orders
+```
+
+Worth having a think about what you want your final dataset to look like before you start pivoting
+
+```{r}
+library(CodeClanData)
+hospital_visits
+```
+
+This data needs tidying
+
+```{r}
+hospital_visits_longer <- hospital_visits %>% 
+  pivot_longer(cols = starts_with("FY"),
+               names_to = "year",
+               values_to = "count")
+
+hospital_visits_longer
+```
+Quite a lot of repetition in the field column but that's the price of longering.
+
+## Pivot wider
+
+```{r}
+hospital_visits_wider <- hospital_visits_longer %>% 
+  pivot_wider(names_from = Field,
+              values_from = count)
+
+hospital_visits_wider
+```
+
+We've moved patient days and separations out into their own columns, now less repetition. As tidy as we can make it. We can separate the number from the text in IcdChapter however.
+
+## Separate
+
+```{r}
+hospital_coded <- hospital_visits_wider %>% 
+  separate(IcdChapter,
+           c("code", "description"),
+           sep = "\\.") # need 2 backslashes for full stop
+hospital_coded
+```
+Put them back together cos why not lol - now with a colon
+
+```{r}
+hospital_unite <- hospital_coded %>% 
+  unite(disease, c("code", "description"),
+        sep = ":")
+hospital_unite
+```
+

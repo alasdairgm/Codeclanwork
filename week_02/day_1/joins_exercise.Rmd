@@ -1,0 +1,246 @@
+---
+title: "joins exercise"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+```
+
+Objectives:
+
+Be familiar with the different types of table relationships
+Understand how keys create relationships
+Be able to use all join types in R
+Be able to identify the correct join to use
+
+### Relationships
+
+one-to-one
+  - one row in table A is assocaciated with _one single_     row in table B
+one-to-many
+  - one row in table A might be related to several rows     in table B
+many-to-many
+  - table A might have several connections to table B
+  - to facilitate this, we use a __bridging__ table
+  - we need the "bridge" because it is the only way to    connect __unique__ ids between two tables
+
+__Keys:__ A unique identifier - identifies __one__ particular row
+
+__Primary key__ the unique identifier for that particular table
+    e.g. tax reference in hmrc database, it's the unique    number that idenitifes you
+
+__Foreign key__ a key that identifies a value (could be       a row) from another table
+    -The foreign key will be the primary key for its own     table
+    
+joining functions live in `dplyr` (included in tidyverse)
+
+### mutating joins 
+> Mutating joins will add columns from Y to X, matching on the keys
+
+?`mutate-joins` in console will bring up help
+
+`inner_join()`: 
+  - returns all rows from table A that have a _match_ in table B
+  - rows in table A without a matching id in B will be lost
+  
+`left_join()`: 
+  - return all rows in table X
+  - and will also _add_ columns from table Y
+  - will put NAs for those that don't match rather than drop them (e.g. cols NA except for the primary key from Y)
+  
+`right_join():`
+  - return all rows in table Y
+  - and will also _add_ columns from table X
+  - reverse of above
+
+`full_join()`:
+  - includes all rows in X or Y
+  
+### Filtering joins
+
+> Filtering joins _filter rows_ from X based on the presence of absence of matches in Y:
+
+?`filter-joins' for help
+
+`semi-join()` returns _only_ rows from X where there are at least one
+
+`anti-join()`: returns only rows from X where there are __NO__ matches 
+
+```{r}
+customers <- tibble(
+  customer_ID = c(001, 002, 004, 005, 008, 010), 
+  name = c("John Smith", "Jane Adams", "Robert Landry", "Jane Tow", "Raul Tann", "Hilary Joyal"),
+  email_address = c("johnsmith@gmail.com", "janea@gmail.com", "rlabdry@hotmail.com", "janet89@aol.com", "paul.tann1@gmail.com", NA),
+  shipping_address = c("32 Station Road, Edinburgh", "42 Park Drive, Edinburgh", NA, "10 Gardiner Rd, Edinburgh", "12 Main St, Edinburgh", " 234 Queensferry Rd, Edinburgh,")
+)
+
+
+orders <- tibble(
+  customer_ID = c(001, 002, 005, 010, 012, 001), 
+  order_number = c("KU65781", "SU98201", "JS76821", "YR28212", "JS91221","YR21873"),
+  order_total = c("£32.50", "£56.00", "£100.02", "£20.25", "£39.50", "£45.00"),
+  product_code = c("XZY780", "XYZ123", "XYZ256", "XYZ262", "XYZ345", "XYZ127")
+)
+
+
+customers
+orders
+```
+
+Primary key for customers dataset is customer_ID
+Primary key for orders dataset is order_number
+  - customer_ID could appear several times so is not            unique/primary
+Foreign key for orders dataset is customer_ID
+
+### `inner_join()`
+Remember, returns all rows in A that have a match in B
+Inner join on these tables should return 5 rows
+```{r}
+inner_join(customers,orders) # here, the customers table is the left hand table, orders is right hand - this matters with left/right joins
+
+# or can do
+customers %>% 
+  inner_join(orders)
+
+# or
+customers %>% 
+  inner_join(orders, by = "customer_ID")
+# i.e. joining on customer_ID which is in both, default will join by any matches, helps to specify as keys between tables may have same names even though they mean different things (e.g. name, id)
+
+
+```
+### `left_join()`
+
+> left_join(): includes all rows in x.
+
+```{r}
+customers %>% 
+  left_join(orders,"customer_ID")
+# customers table 'prioritised', even if it means NAs for missing data
+
+orders %>% 
+  left_join(customers, "customer_ID")
+# orders table prioritised, even
+```
+
+Gone from 2 separate tables to 1 table that includes all relevant info for matches
+
+### right_join()
+> right_join (): includes all rows in y.
+
+columns are listed in order of those from the left table first, then the right, or vice versa. All about preference, how do you want your final table to look?
+
+### full_join()
+
+Most intuitive join, just joining everything.
+
+How many rows do we think? 12?
+No. 8. Cant join every row
+```{r}
+full_join(customers, orders)
+# notice customer 12 does exist, but no details on the customer table. So join included them but with NAs
+```
+
+'by' must be supplied when tables have no common variables, here we can change column name and an error occurs if we don't specify in join
+```{r}
+inner_join(customers, orders, by = 'customer_ID')
+
+customers %>% 
+  rename(this_is_the_primary_key = customer_ID) %>% 
+  inner_join(orders, by = c('this_is_the_primary_key' = 'customer_ID'))
+```
+
+```{r}
+customers2 <- customers %>% 
+  mutate(payment_type = c("card", "cash", "cash", "card", "card", "card"))
+
+orders2 <- orders %>%
+  mutate(payment_type = c("card", "cash", "cash", "card", "card", "cash"))
+
+# join by two columns
+inner_join(customers2, orders2, by = c("customer_ID", "payment_type"))
+
+# can filter prior
+customers2 %>% 
+  filter(payment_type == "card") %>% 
+  inner_join(orders2,
+             by = c("customer_ID", "payment_type"))
+
+# without filter, would expect John Smith twice but because customer data has John listed as card (which seems silly) so that the cash row in the orders table isn't joined - data examples are kind of bad tbh
+```
+### filtering joins
+
+`semi_join()` returns all rows from X where there are matching values in Y, keeping just columns from X
+  - differs from an inner join because the latter will         return one row of X for each matching row of Y, whereas     a semi join will never duplicate rows of x.
+  
+```{r}
+semi_join(customers, orders, "customer_ID")
+```
+
+Returns 4 rows. 1, 2, 5 and 10 as they match and customers is given priority (where 1 appears only once)
+
+```{r}
+semi_join(orders, customers, "customer_ID")
+```
+
+Returns 6 rows. Because customers table given priority, even if a customer_ID is repeated. 
+
+### `anti_join()`
+
+Intuitive and complementary to full_join()
+
+Only returns rows in LHS that are not in RHS
+should return 3: 4, 8. (but no ID 12 as they aren't in the LHS table which gets priority)
+
+```{r}
+anti_join(customers, orders, by = "customer_ID")
+```
+
+Two "types" of join
+
+Mutating 
+  - add cols from RH table to LH table (unless right join)
+Filtering 
+  - use the RH table to filter out rows from thr LH table
+
+  
+### Binding tables
+
+```{r}
+statuses <- tibble(
+  status = c("active", "active", "inactive", "inactive", "active", "inactive")
+) 
+```
+Task
+
+If you run `bind_cols()` on your customers and statuses tables, how many rows will be returned? All 6. Simply added a new column to the first dataset as N rows match
+
+```{r}
+bind_cols(customers, statuses)
+bind_cols(customers, rev(statuses)) # can simply reverse them and bolt them on and there's no way of knowing which statuses actually belong to who - no IDs, just gets joined in the order it appears
+```
+
+If number of rows doesn't match then error. But if new table is just 1 value e.g. 'active', then will recycle this and put it into every row. 1 value is unambiguous, more and tidyverse won't recycle
+
+### `bind_rows()`
+
+New table of customers
+```{r}
+past_customers <- tibble(
+  customer_ID = c(020, 021), 
+  name = c("Dave Brown", "Jess Bishop"),
+  email_address = c("dbrown@hotmail.com", "jessb@gmail.com"),
+  shipping_address = c("57 Park View, Leith", "12 Reid Way, Broxburn")
+)
+```
+
+```{r}
+bind_rows(customers, past_customers)
+# added these customers to the customers table
+```
+Bind rows will match up what it can, but if there's any typos or mismatched columns then it will add a new column and fill it with NAs for the old data. 
+
+Important to be careful about binding columns, adding variables to customers that may not actually match due a change in order, say.
+Could use is_active <- `if_else(customer_ID > 5, 'active', 'inactive')` or something to actually be more specific as to who gets what label.
+Rabbit hole - but just be careful with bind_cols!
+

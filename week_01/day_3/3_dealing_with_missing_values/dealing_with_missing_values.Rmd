@@ -1,0 +1,327 @@
+---
+title: "Dealing with missing values"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Learning objectives
+
+1. Understand the challenges of missing and null values
+2. Know potential methods of dealing with missing values
+3. Identify why the data was missing - random or pattern
+4. Be able to identify and justify the approach taken for each missing data item
+5. Be able to tidy up a dataset and deal with missing values
+
+**Lesson Duration: 1 hour**
+
+# Missing values: what are they? 
+
+Missing values - in their simplest form - are data points that are not entered into your spreadsheet/database/table. First, understand that there is no one good way of dealing with missing data. The missing values you will get differ by dataset, and the way you deal with them will also depend on what analysis you are doing. 
+
+
+# Why do they go missing?
+
+Lots of different things contribute to missing data. The types of missing values can be split into three categories.
+
+**Missing Completely at Random (MCAR):** There is no pattern in the missing data. This is good! This might mean someone has accidentally entered data wrong, or it's just a forgotten entry, etc. 
+
+Here is an example of what MCAR data looks like.
+
+| age | income | gender |
+|-----|--------|--------|
+| 43  | 40000  | Female |
+| 21  | 34000  | Male   |
+| 34  | NA     | Male   |
+| 34  | 12000  | Male   |
+| 19  | 8000   | Male   |
+| 65  | NA     | Female |
+
+
+**Missing at Random (MAR):** This means that the propensity for a data point to be missing is not related to the variable that is missing. However, the probability of being missing *can* be related to another variable.
+
+For example, in the table below men are less likely to answer questions about income than women it seems: only one of the four men answered the question on income. However, as long as the pattern of missing income is unrelated to *income* then you are okay.   
+
+| age | income | gender |
+|-----|--------|--------|
+| 43  | 40000  | Female |
+| 21  | NA     | Male   |
+| 34  | 20000  | Male   |
+| 34  | NA     | Male   |
+| 19  | NA     | Male   |
+| 65  | 7000   | Female |
+
+**Missing not at Random (MNAR):** There is a pattern in the missing data that affect what you're measuring. For example, lower-income participants are less likely to respond to questions about income. In our table below, our three lowest income respondents have not answered. This means when we try to calculate the average income, we will defiantly be getting a value that is too high.
+
+ age | income | gender |
+|-----|--------|--------|
+| 43  | 40000  | Female |
+| 21  | 34000  | Male   |
+| 34  | 20000  | Male   |
+| 34  | NA     | Male   |
+| 19  | NA     | Male   |
+| 65  | NA     | Female |
+
+Missing not at random is your worst-case scenario. Proceed with caution.    
+
+In the first two cases, it is pretty ok to remove the missing values (depending on how many occurrences there are, and where those occurrences are). In the last case, removing observations can produce bias in the results. 
+
+# Danger of missing values 
+
+Both data analysts and software may confuse a missing value with a default value or category. For example, in Excel, if you have an empty field and you add the number 2 to it, it will come out as 2. In this case, the problem is that Excel mistakenly imputes `0' where it should have recognised a missing value. This might not be a problem in a standard addition task, but what if you were calculating a mean? Do you want all the missing values to be included? No - then you're dividing the sum total by the wrong number of observations. 
+
+Another commonly encountered mistake is to confuse an NA in categorical data. For example, a missing value can either represent an unknown category OR actual missing data. For example, if you were analysing data from a survey about demographics in a particular city council region. Unfortunately, the survey hasn't been designed or set up properly, and so you've received lots of missing values. For example, there may be data values where the person has left the entry blank because they wanted to responded "don't know" (for example, parents birth city). And there may be values where the person has chosen not to intentionally respond and left the field blank (e.g. marital status). Now you've got 2 missing data points, but they represent totally different things. 
+
+This is a common problem, and it's worth remembering that if unknown is indeed a category, it should be added as a response choice, so it can be appropriately analysed.
+
+# How are missing values represented? 
+
+In R the missing numeric values are coded by the symbol `NA`, or `NaN` .
+
+* NaN : (“Not a Number”) means some sort of invalid calculation, for example 0/0.
+* NA (“Not Available”) is generally interpreted as a missing value and has various forms
+
+Therefore, NaN does not equal NA and there is a need for NaN and NA. To identify missing values in your dataset the function is `is.na()`. This will pick up both NA and NAN values. 
+
+Character variables are harder to code. They can just be left blank, or replaced with a large variety of different symbols - whatever the analyst chooses really! Missing data within character variables are MUCH harder to find, but potentially a bit easier to deal with. 
+
+# What should you do with missing values?
+
+Overall, it's up to you to decide how empty values are handled, since a default imputation by your software might give you an unexpected or erroneous result. There are three main strategies usually employed:
+
+## Drop the NA values
+
+Delete all data from any participant with missing data. 
+
+## Replace the NA values with something else.
+
+This is known as **imputation**. You can use the mean, median, or mode. For example, on a 5 point scale you could substitute a missing value as a 3 (e.g. neutral). This is better than guessing, but still a risky approach, and again, reduces the variability in your dataset.   
+
+```{r, echo=FALSE, out.width = '60%'}
+knitr::include_graphics("images/mean_median_mode.jpg")
+```
+
+*You can view the mean and median of your variable by using the `summary()` function.* 
+
+*Note: it is worth noting that imputation does not necessarily give better results! It's just one way of preserving some data.*
+
+## Just leave them alone
+
+This can sometimes work if you just want a true representation of the data. However, if you want to do any summary stats, you will need to deal with missing values. 
+
+
+# Identifying missing values in R : an exercise
+
+R's core functionality (and the tidyverse library) is all set up to be consistent with the idea that the analyst should choose how to deal with missing values. Mostly - R and it's functions give you the option to remove NAs. 
+
+For this exercise we're going to work with some customer attrition data - that is, data which represents the loss of clients or customers. Places such as banks, internet companies, tv companies, insurance firms all use this kind of data and analysis as part of their metrics. We've all heard the adverts talking about "Our clients stay with us for X years because they're so happy.... etc.). Well, that's customer attrition data. 
+
+Here we have some data from a phone supply company (communication company). Let's load in the data and look at the missing values we have. 
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+```
+
+```{r}
+# load in the data
+comms_data <- read_csv("data/telecom_data.csv")
+head(comms_data)
+```
+<br>
+
+You can see almost every column in the dataset contains some kind of missing value, and a wide array of them at that! Let's first start by looking at some standard missing values. 
+
+<br>
+
+## Standard missing values 
+
+The column `monthly_charges` contains what we refer to as "standard missing values". That is, it has NA's in it. Let's take a look, using the `is.na()` function. 
+
+
+```{r}
+# select the monthly_charges column to look at what different missing values we have
+comms_data %>% 
+  filter(is.na(monthly_charges))
+```
+
+From this you can see that we have missing values (the NA - not available rows), and values where NaN (not a number) has been entered.  “NaN” or “Not a Number” is used for numeric calculations. If a value is undefined, such as 0/0, “NaN” is the appropriate way to represent this.  
+
+Now we can count how many missing values we have to see the scope of the problem we're dealing with.   
+
+```{r}
+# counting missing values
+comms_data %>%
+  summarise(count = sum(is.na(monthly_charges)))
+```
+
+So, what should we do? As mentioned in the introduction, you usually have three broad options. 
+
+### Remove them 
+
+You can remove them. You can use the function `drop_na()` for this:  
+
+```{r}
+comms_data %>% 
+  drop_na()
+```
+
+Note that this removes *all* missing values from across each column. If you want to just work with one column you can use a filter.
+
+### Impute them 
+
+You can impute them (that is, replace them with something else). For example, you could replace them with the median value of `monthly_charges`, using the `coalesce()` function. 
+
+```{r}
+# replace na observations in the monthly_charges column, with the median of that column
+comms_data_imputed_median <- comms_data %>%
+    mutate(monthly_charges = coalesce(monthly_charges, median(monthly_charges, na.rm = TRUE)))
+
+comms_data_imputed_median
+```
+
+Note that when you do the median you need to set `na.rm = TRUE`, otherwise we just replace missing values with a missing value!
+
+We can also do average imputation, and replace the values with the mean.  
+
+```{r}
+comms_data_imputed_mean<- comms_data %>%
+    mutate(monthly_charges = coalesce(monthly_charges, mean(monthly_charges, na.rm = TRUE)))
+
+comms_data_imputed_mean
+```
+
+We can make some quick plots to see what our data now looks like.
+
+*Instructor note: send code below out*
+
+```{r}
+ggplot(comms_data_imputed_median, aes(customerID, monthly_charges)) + geom_point()
+```
+
+```{r}
+ggplot(comms_data_imputed_mean, aes(customerID, monthly_charges)) + geom_point()
+```
+
+Can you see the difference? Either way, the imputed values are pretty obvious. You can see the straight line really clearly where all the values are the same.   
+
+The final way you can impute is via building models to simulate the missing values. This is generally only used on more complex datasets in prep for model building, and so we won't cover this yet. 
+
+### Leave them as is 
+
+As we stated in the intro, the final option you have is to to just leave them as is. In this particular case, this option isn't appropriate, because we want to summarise the charges eventually.   
+
+Now let's look at dealing with some of the non-standard missing values. 
+
+## Non standard missing values 
+
+<blockquote class = 'task'>
+
+**Task - 5 minutes**
+
+Take a look at the `total_charges` column and find the different type of missing value identifiers we have, and how many we have.
+
+What is the problem with the result you get?
+
+<details>
+<summary>**Solution**</summary>
+
+```{r}
+# see the NA values 
+comms_data_imputed_median %>%
+  filter(is.na(total_charges)) 
+```
+
+</details>
+</blockquote>
+
+What is the problem here? R hasn't recognised that there are three different types of missing values in this column - we have “na”, “NA”, and “N/A”.
+
+So, what to do? 
+
+Well, one option is that you can manually set the missing values to all be missing. To do this you can use the function `na_if`. This is sort of the opposite of `coalesce`.
+
+```{r}
+# replace all NA values as NA
+total_charges_replaced <- comms_data_imputed_median %>%
+  mutate(total_charges = na_if(total_charges, "na")) %>%
+  mutate(total_charges = na_if(total_charges, "N/A"))
+
+# check if the NAs are being found now
+total_charges_replaced %>%
+  filter(is.na(total_charges))
+```
+
+In this case a better method of dealing with this would be to ensure that you're working with numeric data. In our case, the `total_charges` column is actually set to character. 
+
+If we change these to numeric types, you'll notice what happens:
+
+```{r}
+charges_numeric <- comms_data_imputed_median %>%
+  mutate(total_charges = as.numeric(total_charges))
+
+charges_numeric %>%
+  filter(is.na(total_charges))
+```
+
+Now you can see that once again, R has found all the NA's.
+
+Let's drop them now.
+
+```{r}
+
+charges_numeric <- charges_numeric %>% 
+  filter(!is.na(total_charges))
+
+```
+
+
+Ok, so we've got those ones covered. But what about if we have an even more non-standard missing value? For example, take the `payment_method` column. 
+
+  
+<blockquote class = 'task'>
+
+**Task - 5 minutes**
+
+Take a look at the `payment_method` column and find the different type of missing value identifiers we have, and how many we have.
+
+Replace these with NA, and then check if you have the right amount
+
+<details>
+<summary>**Solution**</summary>
+
+```{r}
+payments_replaced <- charges_numeric %>%
+  mutate(payment_method = na_if(payment_method, "--")) 
+
+payments_replaced  %>%
+  filter(is.na(payment_method))
+```
+
+</details>
+</blockquote>
+
+Great - so now we have all the NAs. But instead of replacing them, dropping them, or imputing them like we do with numeric variables, what should we do? In most cases, you as the data analyst can decided. Here, let's set them to 'unavailable', which is a new category.   
+
+```{r}
+# replace the missing value to be 'unavailable'
+payments_new_category <- payments_replaced %>%
+  mutate(payment_method = coalesce(payment_method, "unavailable"))
+
+payments_new_category
+```
+
+And voila! There you have it. You've successfully cleaned the data and fixed all the missing values, dealing with them in different ways. The final thing you can do is look at your newly cleaned data. 
+
+```{r, eval=FALSE}
+comms_data_cleaned <- payments_new_category
+view(comms_data_cleaned)
+```
