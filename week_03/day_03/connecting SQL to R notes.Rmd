@@ -1,0 +1,18 @@
+---
+title: "Connecting R to SQL"
+output: html_notebook
+---
+
+## Connecting R to a SQL Database
+
+1. Storing Acess Credentials Securely
+
+Two strategies for storing and using access credentials (when workinf in git)
+  1. Don't store the credentials anywhere near the git repository e.g. not in the project folder but in home folder 
+  2. Use a .gitignore file (i.e. don't want git to track our credentials file) - we'll do this one
+  
+Storing credentials within a repo but not tracking with git using a .gitignore file
+  1. modify/create our gitignore to ignore the file `secrets.R`
+  2. commit that changed gitignore
+  3. add file with credentials `secrets.R`
+  4. source `secrets.R` into script/notebook
