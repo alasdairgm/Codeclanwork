@@ -1,0 +1,15 @@
+age_years,reaction_time,text_messages_sent_yesterday,favorite_school_subject,school_year,height_cm,sleep_hours_schoolnight,superpower,languages_spoken,planned_education_level
+17,0.442,45,English,Year 11,185,8,Telepathy,1,Graduate degree
+14,0.394,28,Mathematics and statistics,Year 9,160,7,Invisibility,2,Graduate degree
+14,0.551,5,Mathematics and statistics,Year 8,152.4,6,Telepathy,1,Graduate degree
+17,0.355,35,Music,Year 12,155,8,Fly,1,High school
+16,0.381,15,Mathematics and statistics,Year 12,176,5.5,Freeze time,2,Less than high school
+17,0.601,100,Physical education,Year 12,177.8,5,Invisibility,2,Graduate degree
+13,0.594,31,Physical education,Year 8,166,10,Fly,2,Graduate degree
+17,0.394,0,Other,Year 12,164,7,Telepathy,1,Graduate degree
+16,0.432,200,Art,Year 12,162,6,Telepathy,3,Graduate degree
+13,0.299,0,Music,Year 7,154,8,Invisibility,2,Graduate degree
+18,0.0774,100,Computers and technology,Year 12,183,8,Fly,2,Graduate degree
+17,1,200,English,Year 12,157,6,Fly,1,Graduate degree
+17,0.481,35,Mathematics and statistics,Year 12,175.3,6.5,Telepathy,1.5,Graduate degree
+17,0.45,20,Science,Year 11,173,6,Telepathy,2,Graduate degree

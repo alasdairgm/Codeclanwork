@@ -1,0 +1,287 @@
+---
+title: "Assertive Programming"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+# Learning Objectives<br>
+
+* Know what assertive programming is and why it is useful.
+* Be able to use `assertr` and `stopifnot` to write assertions.
+
+**Duration - 30 minutes**
+
+In this lesson you will learn about assertive programming. Assertive programming goes hand-in-hand with testing. When testing, you are checking that your code does what you expect; when carrying out assertive programming, you are checking your data is in the form you expect.
+
+# Same code; different data
+
+One of the very useful things about writing code to do data analysis is that it's easy to repeat the same analysis over again. Often reports need to be generated monthly, weekly or even daily. Having code that can create that report can save you a huge amount of time.  
+
+However, once you start running the same code but with different data you will soon run into problems! You have learnt all about data cleaning - how important, but also how time consuming it is. Well, how do you clean data that you've never seen before? You can try write code that will take care of problems in the data that you've already seen, but data can go wrong in more ways that you can possibly imagine... 
+
+# An example with Delhi weather data
+
+## Writing our analysis
+
+Imagine we are doing some analysis of weather in data. We read our data in:
+
+```{r, message = FALSE, warning = F}
+library(tidyverse)
+weather_one <- read_csv("data/delhi_weather_one.csv")
+```
+
+And we do some calculations. Let's find the average temperature, humidity and wind speed. Here we have put the calculations into a function because we're going to run the calculations again on new data.
+
+*Instructor note: send this code out*
+
+```{r}
+weather_report <- function(weather){
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+
+weather_report(weather_one)
+```
+## New data
+
+Now imagine it's a month later and we have new weather data. You might just read the data and run your code.
+
+```{r, message=FALSE}
+weather_two <- read_csv("data/delhi_weather_two.csv")
+weather_report(weather_two)
+```
+
+  
+<blockquote class = 'task'>
+
+**Task - 2 minutes**
+
+Everything has run without errors, but can you spot something wrong in our output?
+
+<details>
+<summary>**Solution**</summary>
+
+We have one line where the value is the same for temperature, humidity and wind speed. This doesn't seem right! 
+
+</details>
+</blockquote>
+
+# Using `assertr`
+
+To avoid this sort of problem we need to use *assertive programming*. This is the idea that we need to specify what our inputs should be *and throw an error if our inputs are unexpected*. So far, errors might have seemed like a bad thing to you, but when something is wrong it's much better to have an error than just getting the wrong results.
+
+To help us do assertive programming we are going to use a package called `assertr`. This lets us write some "assertions" that describe how we expect the data to look.
+
+```{r, eval = FALSE}
+install.packages("assertr")
+```
+```{r, message=FALSE}
+library(assertr)
+```
+
+What do we think are reasonable values for our data? The highest ever temperature in India was 51C, and the lowest ever was -34C, so let's assume that the temperature will not be higher than 55 or lower than -35. The highest average wind speed average a day in the entire world is 108mph, let's assume that the wind speed is lower than that. We also need wind speed to be a positive number. 
+
+We can use the `verify` function from `assertr` to write statements about the data. Anything you can write inside `filter` you will be able to write inside `verify`.
+
+```{r}
+weather_report <- function(weather){
+  
+  # put in the checks on the data first 
+  weather %>% 
+    verify(temp >= -35 & temp <= 55) %>% 
+    verify(wind_speed >= 0 & wind_speed <= 108)
+  
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+```
+
+
+<blockquote class = 'task'>
+
+**Task - 5 minutes**
+
+Add an appropriate assertion for humidity. Hint: humidity is a percentage.
+
+<details>
+<summary>**Solution**</summary>
+
+```{r}
+weather_report <- function(weather){
+  
+  weather %>% 
+    verify(temp >= -35 & temp <= 55) %>% 
+    verify(wind_speed >= 0 & wind_speed <= 108) %>% 
+    verify(humidity >= 0 & humidity <= 100)
+  
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+```
+
+</details>
+</blockquote>
+
+Now that we've added our `verify` statements, we get an error:
+
+```{r, error=TRUE}
+weather_report(weather_two)
+```
+
+We get the error because the temperature value was unresonably high. Our row also doesn't meet the assertion for humidity but because of the order we wrote the assertion only the temperature condition is raised. In `verify` it will stop at the first occurrence of not meeting an assertion and let you know about it. There may be more occurrences in your data but you would need to go in to find them - the point of `verify()` is to stop the code if the condition is not met, you can then do more work to investigate them. 
+
+<blockquote class = 'task'>
+
+**Task - 5 minutes**
+
+Change the order of the assertions so we check humidity before temperature and see how the error message differs.
+
+<details>
+<summary>**Solution**</summary>
+
+```{r}
+weather_report <- function(weather){
+  
+  weather  %>% 
+    verify(humidity >= 0 & humidity <= 100) %>%
+    verify(temp >= -35 & temp <= 55) %>% 
+    verify(wind_speed >= 0 & wind_speed <= 108)
+    
+  
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+```
+
+```{r, error=TRUE}
+weather_report(weather_two)
+```
+
+You will see the error flags the humidity rather than the temperature. Both orders work though because either way it's correctly stopped when the assertions aren't met. 
+</details>
+</blockquote>
+
+You might have spotted a problem. From looking at the data it's likely that the wind speed value is also wrong because it was exactly the same as the temperature and humidity (so it's likely an error in the readings). However our assertions did not manage to catch it because it is within our acceptable range (even though it's very close to the top end which may also be a sign it's maybe an error!). Finding numerical errors can be very difficult; sometimes there is almost no way of knowing that you have an error without chasing the data back to the source. However assertive programming can help you avoid extreme errors.
+
+# Using `stopifnot`
+
+Sometimes you will want to do other, more general checks. We can do these using a function from base R called `stopifnot`. Inside `stopifnot` we can write a series of statements. If any of the statements are `FALSE` then we will throw an error. Here is an example.
+
+```{r}
+weather_report <- function(weather){
+  
+  stopifnot(
+    nrow(weather) > 15,
+    ncol(weather) == 4,
+    # Check for any missing values
+    drop_na(weather) == weather
+  )
+
+  weather %>% 
+    verify(temp >= -35 & temp <= 55) %>% 
+    verify(wind_speed >= 0 & wind_speed <= 108) %>% 
+    verify(humidity >= 0 & humidity <= 100)
+  
+  # Our average temperature, humidity and wind speed 
+  weather_means <- 
+  weather %>% 
+  summarise(
+    mean_temp = mean(temp),
+    mean_humidity = mean(humidity),
+    mean_windspeed = mean(wind_speed)
+  )
+
+# Show hot and humid days
+hot_and_humid <- 
+weather %>% 
+  filter(temp > 20) %>% 
+  filter(humidity > 55)
+
+return(list(weather_means, hot_and_humid))
+}
+```
+
+  
+<blockquote class = 'task'>
+
+**Task - 2 minutes**
+
+Check if `weather_one` meets the assertions we just added.
+
+<details>
+<summary>**Solution**</summary>
+
+```{r, error=TRUE}
+weather_report(weather_one)
+```
+
+- No errors, so yes it does!
+
+</details>
+</blockquote>
+
+
+
+

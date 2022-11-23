@@ -1,0 +1,156 @@
+---
+title: "Unit testing"
+output: html_notebook
+---
+
+Create a function to test
+
+```{r}
+is_leap_year <- function(year){
+  
+  if (year %% 100 == 0){
+    if (year %% 400 == 0){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } 
+    
+  if (year %% 4 == 0){
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+  
+}
+```
+
+
+Task - 5 minutes
+
+Write out what this function is doing, and why it is written in this format (e.g. Why do we test the 100 and 400 years first?)
+
+Function returns true if the year input is divisible by 100 and 400. Then checks if it's divisble by 4 for another return TRUE. Have to catch the larger numbers first as many things are divisible by 4 and would therefore return TRUE.
+
+## `testthat` package
+
+testthat tries to make testing as fun as possible, so that you get a visceral satisfaction from writing tests. Testing should be addictive, so you do it all the time.
+
+
+```{r}
+library(testthat)
+```
+
+expect_equal checks that the objects give you an answer you expect
+expect_error checks that code throws an error
+
+e.g.
+```{r}
+a <- 10
+# we expect a to be 10, if it does - carry on, no error
+expect_equal(a,10)
+expect_equal(a,11)
+```
+
+### Tests that pass
+
+The workflow of unit testing is best described by example. Let’s write a test that checks if real leap years return a true value from our function.
+
+
+# first test: two expectations
+```{r}
+# first test: two expectations
+test_that("Real leap years return true", {
+  expect_equal(is_leap_year(2020), TRUE)
+  expect_equal(is_leap_year(2000), TRUE)
+})
+```
+
+Task - 5 minutes
+
+Take the following test code and write down an explanation of all the different parts:
+
+What is the test name?
+"Character input returns an error"
+What is the expectation?
+that "year" will return an error
+What are you expecting this test to do?
+Pass
+Think carefully about the logic of this one before you write down your assumptions… you may want to try and run it to see what happens first.
+
+```{r}
+test_that("Character input returns an error", {
+  expect_error(is_leap_year("year"))
+})
+```
+
+### Tests that fail
+
+```{r}
+test_that("Non-numeric input returns an error", {
+  expect_error(is_leap_year("year"))
+  expect_error(is_leap_year(TRUE))
+})
+```
+Task - 5 minutes
+
+Which of our tests has failed?
+2nd test
+Why has it failed?
+no error when one was expected
+Why has our other test passed?
+because an error was expected 
+
+
+So now let’s change the function code to make this test pass:
+
+```{r}
+is_leap_year <- function(year){
+
+  # add a condition, that makes sure our function ONLY takes in numeric input
+  if (!is.numeric(year)){
+    stop("Non-numeric input 😿")
+  }
+    
+  if (year %% 100 == 0){
+    if (year %% 400 == 0){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } 
+    
+  if (year %% 4 == 0){
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+  
+}
+```
+
+Now our function has been updated so that the first thing it will do is check for non-numeric input. That should allow our test to work now:
+
+```{r}
+test_that("Non-numeric input returns an error", {
+  expect_error(is_leap_year("year"))
+  expect_error(is_leap_year(TRUE))
+})
+```
+
+Woo test passed!
+
+Task - 5 minutes
+
+Write a test that checks whether 2017 and 1900 are correctly identified as not being leap years by our is_leap_year() function.
+
+```{r}
+test_that("2017 and 1900 correctly identified", {
+  expect_false(is_leap_year(2017))
+  expect_false(is_leap_year(1900))
+})
+```
+
+Could have used expect_equal here, there's also expect_type, expect_gt (greater than), expect_match (for pattern matching)
+
+

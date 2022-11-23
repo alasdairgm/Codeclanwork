@@ -1,0 +1,33 @@
+---
+title: "reading_in_data_script"
+output: html_document
+---
+
+Let's use the same relative filepath as we did for the .R file
+
+```{r}
+library(tidyverse)
+read_csv("data/students.csv")
+```
+
+You will find you get an error, read the error, it tells us exactly what's going on! Below is mine (but your filepath may be slightly different depending on where you have saved this project). 
+
+Error: 'data/students.csv' does not exist in current working directory ('/Users/user/Documents/relative_filepaths/project_example/scripts').
+
+It's saying that the relative filepaths begins with the 'scripts' folder - but this isn't where our .RProj file sits! This is a bit of quirk in R. When you are working in a `.Rmd` file, R sets your working directory to the folder that the `.Rmd` file lives in (in this case, it would be `scripts`). However, if you are working in a script file (`.R`) it makes the working directory the top level of the project (and so the code above would have worked). 
+
+Sometimes we will be working in `.Rmd` files, so we need a fix for this. Luckily there is a function `here()` found in the `here` package, which figures out the top-level of your current project. And so we can use the following code:
+
+```{r , eval=FALSE}
+library(here)
+
+#test where the top level of the project directory is 
+here::here()
+
+#use this to set the path to the data file
+read_csv(here("data/students.csv"))
+```
+
+Note: there is also function named `here()` in the `lubridate` package, so, to avoid ambiguity, you may want to specify the use of `here()` from the package `here` by using `here::here()` to avoid any conflicts if you've loaded `lubridate`. 
+
+

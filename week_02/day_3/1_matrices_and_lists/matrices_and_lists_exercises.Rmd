@@ -1,0 +1,216 @@
+---
+title: "matrices and lists"
+output: html_notebook
+---
+
+Make a list
+```{r}
+x <- list(1, "a", TRUE, c(1,2,3))
+x
+```
+
+Convert to list
+```{r}
+x <-  1:5
+as.list(x)
+```
+
+## Subsetting list
+Can retrieve contents of elements of a list using [[]]
+
+```{r}
+x <- list(1,"a", TRUE, c(1,2,3))
+x[[2]] # gice me the 2nd component
+```
+
+Single [] will give sub-list
+```{r}
+x[2]
+```
+
+Elements of a list can be named
+```{r}
+named_list <- list(a = "I love R", b = 1:10)
+named_list
+```
+
+
+If your list has names, then elements can be extracted by name using the $ operator
+
+```{r}
+named_list$a
+```
+
+Also works with data frames!
+
+And we can extract the names of a list using the names() function.
+
+```{r}
+names(named_list)
+```
+
+
+## Nested lists
+
+Here's an example of a list with elements that are themselves lists:
+
+```{r}
+student_info <- list(
+              "Agnes" = list(height = 1.8, shoe_size = 8L),
+              "Bobby" = list(height = 2.1, gender = "Male"),
+              "Charlie" = list(gender = "Female", likes_beets = TRUE)
+)
+student_info
+
+```
+
+If you want to pull a single entry from a nested named list you can use $ twice:
+```{r}
+student_info$Agnes$height
+```
+
+If it was unnamed you could use the item index i.e. Agnes' height is the 1st item in the 1st list:
+```{r}
+student_info[[1]][[1]]
+```
+
+Lists can be extremely useful inside functions. Because functions in R are able to return only a single object, you can “staple” together lots of different kinds of results into a single object that a function can return.
+
+Data frames are actually a special case of lists where all the elements of the list have the same length.
+
+Task - 5 minutes
+
+Make a named list that contains a numeric vector and a character vector.
+
+Access the second element of your list using double square brackets [[]]. What is its class?
+
+Access the second element of your list using single square brackets []. What is its class?
+
+Access the second element of your list by name. What is its class?
+
+```{r}
+my_list <- list(age = 12, name= "bob")
+my_list[[2]]
+
+class(my_list[[2]]) # is a character
+
+my_list[2]
+class(my_list[2]) # is a list
+
+my_list$name
+class(my_list$name)
+```
+
+# Matrices
+2D structures, like DFs. Matrix entries all have to be same data type, DF can be heterogenous.
+
+If you have data of the same type, can store in either. Matrices more memory effivient and are useful when implementing an algorithm data from scratch (rare) - usually use DFs when doing data analysis.
+
+## Creating matrices
+
+made using `matrix`
+
+```{r}
+matrix(1:4, nrow = 2, ncol = 2) # specify rows and cols
+```
+Note how cells filled in columnwise
+
+If you wanted it to populate your matrix rowwise rather than columnwise you can add the argument byrow=TRUE.
+
+```{r}
+matrix(1:4, nrow = 2, ncol = 2, byrow = TRUE)
+```
+Now they're filled in rowwise.
+
+Another e.g. this time creating a matrix with 2 rows 4 cols
+```{r}
+matrix(1:6, nrow = 2, ncol = 3)
+# because byrow is default FALSE, filled in colswise
+```
+
+
+Again we can use class() to check if an object is a matrix
+```{r}
+m <- matrix(1:6, nrow = 2, ncol = 3)
+class(m)
+```
+
+ 
+# Selecting elements in a matrix
+
+Can select data help within a matrix by row number and column number. The first number selects a row:
+
+```{r}
+m[1,]
+```
+
+second number selects a column:
+```{r}
+m[, 1]
+```
+
+Or can select a single element from a particular row and column position
+```{r}
+m[1, 1]
+```
+Can select multiple row or cols by listing in a vector
+```{r}
+m
+m[, c(1,3)]
+```
+Note that all these ways of selecting work with data frames as well! Although the functions provided by dplyr are generally easier to use.
+
+## Calculations with matrices
+
+Can multiple, divide, add to, subtract from matrices, just like with vectors
+
+```{r}
+m
+m*3
+m-2
+```
+
+
+# Working with rows and columns
+
+In matrices you might occasionally need to work with all of the rows or all of the columns at once. For example, you might want to find the sums of each row or the averages of each column. These four functions let you do that:
+
+1. rowSums()
+2. colSums()
+3. rowMeans()
+4. colMeans()
+
+```{r}
+m
+rowSums(m)
+colSums(m)
+rowMeans(m)
+colMeans(m)
+```
+These functions also work on data frames, so long as all the data in the data frame is numeric type.
+
+
+Task - 5 minutes
+
+Make a matrix with 3 rows and 4 columns. Each column should contain the numbers 1 to 3.
+
+```{r}
+m2 <- matrix(1:3, nrow = 3, ncol = 4)
+m2
+```
+
+
+Find the element in the 2nd row, 3rd column.
+
+```{r}
+m2
+m2[2,3]
+```
+
+
+Check that all the columns are identical by checking that their sums are the same.
+
+```{r}
+colSums(m2)
+```
+

@@ -1,0 +1,547 @@
+---
+title: "Control flow"
+output: html_notebook
+---
+
+So far when you’ve been writing code, each step has been executed one by one in sequence. In this lesson we’ll learn ways of writing code where we skip statements or do some statements repeatedly. This can make code more complicated to think about, but it also makes it hugely more powerful.
+
+# If Statements
+
+```{r}
+if (expression) {
+  do something
+}
+
+if (weather == "Sunny") {
+  hang_up_washing() # homemade function
+  )
+}
+```
+
+```{r}
+if (10 < 15){
+  print("Yes")
+}
+```
+```{r}
+if (5 %in% c(1, 4, 8)){
+  print("Yes")
+}
+# doesn't print
+if (5 %in% c(1, 5, 8)){
+  print("Yes")
+}
+# does print
+```
+```{r}
+if (5 != 3){
+  print("Yes")
+}
+```
+
+
+```{r}
+x <- 8
+y <- 7
+
+if (x > y){
+  print("Yes")
+}
+```
+
+Task - 5 minutes
+
+Write an if statement that prints ‘Yes that divides by 2’ if a number x is divisible by 2 (hint: use %% 2 == 0 as your expression), try it out for different values of x.
+
+```{r}
+x <- 4
+if (x %% 2 == 0){
+  print("Yes that divides by 2")
+}
+```
+
+
+## More complicated if statements
+
+You can put an if statement inside another if statement. The inner code will only run if both the Boolean expressions are TRUE.
+
+```{r}
+if (10 != 5){
+  if (3 > 1){
+    print("Hello!")
+  }
+  print("Goodbye!")
+}
+
+```
+Prints Hello because 3 is less than one AND cos 10 is not 5, prints goodbye cos 10 is not 5
+
+```{r}
+if (10 != 5){
+  if (2 <= 0){
+    print("Hello!")
+  }
+  print("Goodbye!")
+}
+```
+
+Only prints goodbye because 10 does not = 5 but 2 is not less 0
+
+Task - 10 minutes
+
+Here’s an example of a nested if statement. Predict what the code is going to print out for the following combinations:
+
+```{r}
+x <- 2
+y <- 10
+
+if (x > y) {
+  print("Start of outer if block")
+
+  if (x %% y == 0) {
+    print("Inner if block 1")
+  }
+
+  if (y %in% c(1:5)) {
+    print("Inner if block 2")
+  }
+
+  print("End of outer if block")
+}
+
+print("After if statement")
+```
+
+
+x is 10 and y is 3.
+prediction:
+start of outer if block, 
+inner block 2
+end of outer block
+after if statement
+CORRECT
+
+x is 10 and y is 2.
+prediction:
+Start of outer block
+Inner if block 1
+Inner if block 2
+End of outer if block
+After if statement
+CORRECT
+
+x is 2 and y is 10.
+prediction:
+After if statement
+CORRECT
+
+## If-else statements
+
+```{r}
+if (4 > 5){
+  print("Yes")
+} else {
+  print("No")
+}
+```
+
+```{r}
+if (3 %in% 4:6){
+  print("Yes")
+} else {
+  print("No")
+}
+```
+
+Task - 5 minutes
+
+Edit your code from the first exercise so that it prints ‘Yes that divides’ when x is divisible by 2, and prints ‘No that does not divide’ otherwise.
+
+```{r}
+x <- 5
+if (x %% 2 == 0){
+  print("Yes that divides by 2")
+} else {
+  print("No that does not divide")
+}
+```
+
+Here’s an example of a nested if-else statement. Predict what it’s going to print out for the following conditions:.
+
+```{r}
+x <- 6
+y <- 13
+
+if (x %in% c(3, 4, 5)){
+  print("x is in our list")
+  if (x == 5){
+    print("x is exactly 5")
+  }
+} else {
+  print("Start of else statement")
+  if (y %% x == 0){
+    print("x divides y")
+  } else{
+    print("x does not divide Y")
+  }
+  print ("End of else statement")
+}
+
+```
+
+
+When x is 5 and y is 10
+prediction:
+x is in our list
+x is exactly 5
+CORRECT
+
+
+When x is 6 and y is 12
+prediction:
+Start of else statement
+x divides y
+End of else statement
+CORRECT
+
+
+When x is 6 and y is 13
+prediction:
+Start of else statement
+x does not divide y
+End of else statement
+CORRECT
+
+
+# Loops
+
+For and while loops
+- For loops execute for a set number of times (i.e. *for N many times, do X*)
+- While loops are controlled by the checking of a logical condition (i.e. *while condition C is TRUE (or FALSE, as specified by us), do X*)
+
+## For loops
+
+This takes effort: 
+```{r}
+print("The day is Monday")
+print("The day is Tuesday")
+print("The day is Wednesday")
+print("The day is Thursday")
+print("The day is Friday")
+
+```
+
+This is easier (after initial set up)
+```{r}
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+
+for (day in weekdays) {
+    phrase <- paste("The day is", day)
+    print(phrase)
+    # or could do in one line as
+    # print(paste("The day is", day))
+} 
+
+```
+1. created vector of weekdays
+2. for loop created, loop index (here, day) can be called anything (often i) within the vector we created (here, weekdays)
+2. curly brackets indicate start of for loop
+3. then we have our statement, the action we want to repeat several times. Paste string and then print it, here.
+
+Task
+Change the code below to use a for loop:
+
+print(1)
+print(2)
+print(3)
+print(4)
+print(5)
+
+```{r}
+numbers <-c(1,2,3,4,5)
+
+for (number in numbers) {
+  print(number)
+}
+
+```
+
+## While loops
+
+Do a thing until a condition is met, then stop doing that thing.
+
+```{r}
+# set the value we want to start printing at 
+current_value <- 1
+# set value we want to stop at
+stop_value <- 10
+
+while(current_value < stop_value) {
+  current_value <- current_value + 1
+  print(current_value)
+}
+```
+Important to increment the value so that it can reach the stop value.
+
+Task - 5 mins
+
+What do you think would happen if we didn’t add one to the original current_value (current_value <- current_value + 1), and only included the print() statement?
+
+Would go on forever!
+
+## Alternative ways of writing loop indexes
+
+So far have seen how index can be used when looping through the vector e.g. for(item in items)
+Can also call upon the number position of the item within the vector explicitly.
+
+```{r}
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+length_weekdays <- length(weekdays) 
+
+for (i in 1:length_weekdays) { # the loop index differs as it reads the start and end number and loops through the numbers in between
+    phrase <- paste("The day is", weekdays[i])
+    print(phrase)
+} 
+```
+instead of (day in weekdays), here we've gone for (i in 1:length_weekdays). First way is the better way though tbh.
+However the 2nd method of writing loop indexes is used when you want to put something back into a vector/dataframe in a known position in the example below we are looking to pluralise the days of the week vector weekdays(i.e. add ‘s’ on the end of the days).
+
+```{r}
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+length_weekdays <- length(weekdays) 
+
+for (i in 1:length_weekdays) {
+  
+    plural <- paste0(weekdays[i], "s")
+    weekdays[i] <- plural # here is where we use the value i to assign the position in the weekdays vector
+
+    } 
+
+weekdays
+```
+Note: paste() concatenates the input values and returns a single string, paste0() does the same but odes not provide a separator operator.
+
+So here, we basically use i as an index to know which object in weekdays we're assigning plural to.
+
+## Nested loops
+
+Loops within loops
+
+```{r}
+for (row_index in 1:number of rows) { 
+  for (col_index in 1:number of columns){ 
+        print(my_data[row_index, col_index]) 
+  }
+}
+```
+
+In plain language, this code will work through all the columns of the first row, and then all the columns of the second row, and so on. Note which of these indices is what we call the ‘fastest moving’ (i.e. changes most often as the code runs): it is the index of the innermost loop.
+This will always be true: the index of the innermost loop changes most rapidly; the next one out, less rapidly; and the index of the outermost loop, the most slowly.
+You might think of this as being like the dials on an electricity meter: the ‘ones’ dial spins most rapidly; the ‘tens’, less rapidly (at one-tenth the speed); the ‘hundreds’, less rapidly still (at one-hundredth the speed), and so on.
+
+Let’s try this now for a 5×5 matrix:
+
+```{r}
+# create a 5x5 matrix of random numbers
+my_matrix <- replicate(5, rnorm(5)) 
+# check the matrix 
+my_matrix
+
+```
+
+Even though we know the matrix is 5x5, let's get the num_rows and num_cols programatically, so this code could apply to any matrix
+
+```{r}
+num_rows <-  dim(my_matrix)[1]
+num_cols <-  dim(my_matrix)[2]
+num_rows
+num_cols
+
+for(row_index in 1:num_rows){  # for each row
+  for(col_index in 1:num_cols){ # for each column
+     print(my_matrix[row_index, col_index]) # print value at this row and column
+  }
+}
+```
+
+Loop simply prints each cell
+
+Task - 10 mins
+
+Run the code below to create an empty 5×5 matrix:
+```{r}
+product_matrix <- matrix(nrow = 5, ncol = 5)
+product_matrix
+```
+
+Check that the matrix is empty.
+
+Now we’re going to fill product_matrix in the following way: each entry should be the product of the row index and position index at which the entry occurs. For example, the entry on the third row, fourth column, should be 3×4=12.
+
+Get the matrix dimensions programatically (so that we could in the future apply this code to any size of matrix with minimal changes).
+
+Hint: you can use the code above as a guide, although we won’t be printing out the matrix entries as we go. Instead, check your code by printing out the whole matrix at the end: just run the single statement product_matrix to do this
+
+```{r}
+Nrows <-  dim(product_matrix)[1]
+Ncols <- dim(product_matrix)[2]
+
+for(row_index in 1:Nrows){  # for each row
+  for(col_index in 1:Ncols){ # for each column
+     product_matrix[row_index, col_index] <- row_index * col_index  # 
+  }
+}
+
+product_matrix
+
+```
+
+Loops can also contain other control flow statements. For example, a for loop might contain complex conditional logic using various if or if-else statements. Essentially, any code can be enclosed within a loop, and loops can occur within if statements. Rather like assembling Lego(TM), we assemble the code we need to solve the problem at hand!
+
+Task - 10 mins
+
+Here is the matrix we will use in this task
+
+```{r}
+example_matrix = matrix(1:25, nrow = 5, ncol = 5)
+example_matrix 
+```
+
+Taking your knowledge about for loops and if statements, and without running the code below, write what you expect to be printed out by the following code.
+
+```{r}
+for (row_index in 1:5){
+  for (col_index in 1:5){
+    if (row_index == col_index){
+      print(example_matrix[row_index, col_index])
+    }
+   }
+}
+
+```
+
+prediction: 1, 7, 13, 19, 25
+CORRECT
+
+
+Task - 5 mins
+
+Create a nested for loop and if statement combination which loops through the weekdays and prints out the phrase ‘Last weekday!’ once it gets to Friday.
+
+```{r}
+# create your weekdays vector
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+```
+
+
+```{r}
+for (day in weekdays){
+  if (day == weekdays[5]){
+    print("Last weekday!")
+  }
+}
+```
+
+Be careful with nesting though: nesting beyond 2 to 3 levels often makes it difficult to read/understand the code, and, as mentioned above, it can lead to long execution times. If you find yourself in need of a large number of nested loops, think carefully about what you are doing, and to make the code more readable you may want to break up the loops by defining your own functions. That’s not to say that deeply nested loops are always a bad thing, sometimes you have no alternative!
+
+
+## A warning about loops
+
+Loops are less important in R as everything in R is a vector, and R was designed from the outset to use and understand vectorised operations
+
+This means that we can normally do whatever we want straightforwardly by applying only a small number of statement to whole vectors, rather than by writing loops to iterate through a vector, making the changes we want. Beyond making your code more concise, vectorised operations usually also run faster than ‘homebrew’ code using loops, as package designers have optimised the code for you ahead of time!
+
+Other codes might require a loop to add 1 to every element of a vector, in R we can do:
+```{r}
+my_vector <-  c(1,2,3,4,5,6)
+my_vector + 1
+```
+
+Most loops can be replaced by writing code that uses vectorised operations, or other functions that apply to whole vectors at once.
+
+Task - 15 minutes
+
+Using the starwars list from the CodeClanData package, do the following:
+
+Print the name for every character in the list
+Print out the hair_color of every female in the list.
+(Harder) Print out all the films of every character that is under 170cm tall.
+
+```{r}
+starwars_data <- CodeClanData::starwars
+
+for (item in starwars_data){
+  print(item$name)
+}
+
+for (item in starwars_data){
+  if (item$gender == "female"){
+    print(item$hair_color)
+  }
+}
+
+for (item in starwars_data){
+  if (item$height < 170){
+    print(item$name)
+    print(item$films)
+  }
+}
+
+```
+
+# Apply()
+
+Make a matrix:
+```{r}
+m1 <- matrix(data = 1:10, nrow = 5, ncol = 6)
+m1
+```
+
+sum columns using apply:
+```{r}
+sum_cols_m1 <- apply(X = m1, MARGIN = 2, FUN = sum)
+sum_cols_m1
+```
+
+In this case, the code apply(X = m1, MARGIN = 2, FUN = sum) will apply the sum() function to the 5×6 matrix m1 and return the sum of each column. Note that it passes the sums back in a vector. Virtually any function can be passed in to apply(), and using it helps you **avoid using a loop**.
+
+What does the MARGIN argument mean? This tells apply() the 'axis' of the matrix along which to apply the function (1 for rows, 2 for cols).
+Would use MARGIN = 1 to sum all rows
+
+Different forms of the apply() function exist:
+
+lapply(): works on lists and vectors. The main difference from apply() is that the output of lapply() will be a list. lapply() can be used for other objects like data frames and lists.
+
+sapply(): performs jobs similar to lapply() but returns a vector instead of a list. It is generally more user-friendly than lapply(): you can think of the s in sapply() as standing for ‘simple’, it returns simpler data structures
+
+Task - 5 minutes
+
+Use the cars dataset which is inbuilt in R. Use each of the lapply() and sapply() functions to measure the mean speed and stopping distance of the cars. How does the output of each function differ?
+
+```{r}
+mean_speed <- apply(cars, MARGIN = 2, FUN = mean)
+mean_speed
+
+mean_speed <- lapply(cars, MARGIN = 2, FUN = mean)
+mean_speed
+
+mean_speed <- sapply(cars, MARGIN = 2, FUN = mean)
+mean_speed
+```
+
+lapply gives a vector for each mean value, s (for simple) gives a simple data structure with nice headings - same as apply() it would seem, maybe more complex datasets would be different.
+
+
+In short, the apply() family of functions forms the basis of code to perform virtually any task that could be performed by writing explicit loops. However, the code using apply() and related functions will be more concise, and may well run faster.
+
+The family is made up of functions 
+- apply()
+- lapply()
+- sapply() (which we saw above)
+and 
+- vapply()
+- mapply()
+- rapply() 
+- and tapply() 
+(which we haven’t yet seen). It is worth taking some time to familiarise yourself with all the functions in this family.
+

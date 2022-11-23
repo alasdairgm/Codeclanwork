@@ -1,0 +1,15 @@
+---
+title: "Reproducibility - sourcing functions"
+output: html_notebook
+---
+
+```{r}
+source("01_multiply_function.R")
+source("02_add_function.R")
+```
+
+```{r}
+add_two(multiply_by_n(2,4))
+```
+
+

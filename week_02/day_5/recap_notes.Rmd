@@ -1,0 +1,17 @@
+---
+title: "Friday recap"
+output: html_notebook
+---
+
+# Regex
+
+- sometimes it is easier to match the bit you're not interested in'
+
+string: 'xxxxxxxxx-asdsf'
+
+```{r}
+library(tidyverse)
+str_extract('xxxxxxx-adsf', 'x+')  # extract all x's
+str_replace('xxxxxxx-adsf', '-adsf','') # extract everything except adsf, which gives all x's
+```
+
